@@ -1,0 +1,515 @@
+package st235.com.swipeablecontainer
+
+import android.content.Context
+import android.graphics.Rect
+import android.support.annotation.Px
+import android.support.v4.view.GestureDetectorCompat
+import android.support.v4.view.ViewCompat
+import android.support.v4.widget.ViewDragHelper
+import android.util.AttributeSet
+import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewTreeObserver
+import android.widget.FrameLayout
+
+typealias OnActionClickListener = (view: View, action: SwipableAction) -> Unit
+
+class SwipeToActionLayout @JvmOverloads constructor(
+    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
+) : FrameLayout(context, attrs, defStyleAttr) {
+
+    private enum class State {
+        CLOSE,
+        CLOSING,
+        CLOSING_MANUALLY,
+        OPEN,
+        OPENING,
+        DRAG_FULLY_OPENED
+    }
+
+    enum class Direction {
+        NONE,
+        LEFT_TO_RIGHT,
+        RIGHT_TO_LEFT;
+
+        companion object {
+            fun obtainBy(distanceX: Float) = if (distanceX > 0F) RIGHT_TO_LEFT else LEFT_TO_RIGHT
+        }
+    }
+
+    private val swipableActionViewFactory = SwipableActionViewFactory(this) { v, a ->
+        onActionClickListener?.invoke(v, a)
+    }
+
+    private val mRectMainClose = Rect()
+
+    private var maxActionsWidth = 0
+
+    @Px
+    private val minDistRequestDisallowParent = 0
+
+    private var doesOpenBeforeInit = false
+
+    private var isAborted = false
+
+    private var isScrolling = false
+
+    var onActionClickListener: OnActionClickListener? = null
+
+    var onLongActionClickListener: OnActionClickListener? = null
+
+    var isDragLocked = false
+        private set
+
+    private var state = State.CLOSE
+    set(value) {
+        if (value != field) {
+            println(value)
+            onStateChanged(value, field)
+        }
+        field = value
+    }
+
+    private var lastMainLeft = 0
+
+    private var lastKnownDirection = Direction.NONE
+    set(value) {
+        if (value != field) {
+            onDirectionChanged(value, field)
+        }
+        field = value
+    }
+
+    private var dragDist = 0f
+    private var lastKnownX = -1f
+
+    private var swipeListener: SwipeListener? = null
+
+    private lateinit var dragHelper: ViewDragHelper
+
+    private val gestureDetector: GestureDetectorCompat
+
+    private lateinit var mainView: View
+
+    private val hudViewController = HudViewController(context = context, swipableActionViewFactory = swipableActionViewFactory)
+
+    private val leftItems = mutableListOf<SwipableAction>()
+    private val leftItemsViews = mutableListOf<View>()
+
+    private val rightItems = mutableListOf<SwipableAction>()
+    private val rightItemsViews = mutableListOf<View>()
+
+    val isOpened: Boolean
+        get() = state == State.OPEN
+
+    val isClosed: Boolean
+        get() = state == State.CLOSE
+
+    private val mainOpenLeft: Int
+        get() = when (lastKnownDirection) {
+                Direction.LEFT_TO_RIGHT -> mRectMainClose.left + maxActionsWidth
+                Direction.RIGHT_TO_LEFT -> mRectMainClose.left - maxActionsWidth
+                else -> 0
+        }
+
+    private val mainOpenTop: Int
+        get() = mRectMainClose.top
+
+    private val mGestureListener = object : GestureDetector.SimpleOnGestureListener() {
+        var hasDisallowed = false
+
+        override fun onDown(e: MotionEvent): Boolean {
+            isScrolling = false
+            hasDisallowed = false
+            return true
+        }
+
+        override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+            isScrolling = true
+            return false
+        }
+
+        override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+            isScrolling = true
+            lastKnownDirection = Direction.obtainBy(distanceX = distanceX)
+
+            val leftThreshold = mRectMainClose.left + maxActionsWidth
+            val rightThreshold = mRectMainClose.right - maxActionsWidth
+            when {
+                lastKnownDirection == Direction.LEFT_TO_RIGHT && mainView.left > leftThreshold ->
+                    state = State.DRAG_FULLY_OPENED
+                lastKnownDirection == Direction.RIGHT_TO_LEFT && mainView.right < rightThreshold ->
+                    state = State.DRAG_FULLY_OPENED
+                dragHelper.viewDragState == ViewDragHelper.STATE_DRAGGING
+                        && lastKnownDirection == Direction.RIGHT_TO_LEFT
+                        && mainView.left < leftThreshold ->
+                    state = State.CLOSING_MANUALLY
+                dragHelper.viewDragState == ViewDragHelper.STATE_DRAGGING
+                        && lastKnownDirection == Direction.LEFT_TO_RIGHT
+                        && mainView.right > rightThreshold ->
+                    state = State.CLOSING_MANUALLY
+            }
+
+            if (parent != null) {
+                val shouldDisallow: Boolean
+
+                if (!hasDisallowed) {
+                    shouldDisallow = distToClosestEdge >= minDistRequestDisallowParent
+                    if (shouldDisallow) {
+                        hasDisallowed = true
+                    }
+                } else {
+                    shouldDisallow = true
+                }
+
+                // disallow parent to intercept touch event so that the layout will work
+                // properly on RecyclerView or view that handles scroll gesture.
+                parent.requestDisallowInterceptTouchEvent(shouldDisallow)
+            }
+
+            return false
+        }
+    }
+
+    private val distToClosestEdge: Int
+        get() = when (lastKnownDirection) {
+                Direction.LEFT_TO_RIGHT -> {
+                    val pivotRight = mRectMainClose.left + maxActionsWidth
+
+                    Math.min(
+                        mainView.left - mRectMainClose.left,
+                        pivotRight - mainView.left
+                    )
+                }
+
+                Direction.RIGHT_TO_LEFT -> {
+                    val pivotLeft = mRectMainClose.right - maxActionsWidth
+
+                    Math.min(
+                        mainView.right - pivotLeft,
+                        mRectMainClose.right - mainView.right
+                    )
+                }
+                Direction.NONE -> 0
+            }
+
+    private val mDragHelperCallback = object : ViewDragHelper.Callback() {
+
+    private val slideOffset: Float
+        get() = when(lastKnownDirection) {
+            Direction.LEFT_TO_RIGHT -> (mRectMainClose.left - mRectMainClose.left).toFloat() / maxActionsWidth
+            Direction.RIGHT_TO_LEFT -> (mRectMainClose.left - mainView.left).toFloat() / maxActionsWidth
+            else -> 0F
+        }
+
+        override fun tryCaptureView(child: View, pointerId: Int): Boolean {
+            isAborted = false
+
+            if (isDragLocked)
+                return false
+
+            dragHelper.captureChildView(mainView, pointerId)
+            return false
+        }
+
+        override fun clampViewPositionHorizontal(child: View, left: Int, dx: Int): Int {
+            return left
+        }
+
+        override fun onViewReleased(releasedChild: View, xvel: Float, yvel: Float) {
+            val leftThreshold = mRectMainClose.left + maxActionsWidth / 2
+            val leftMax = mRectMainClose.left + maxActionsWidth
+
+            val rightThreshold = mRectMainClose.right - maxActionsWidth/ 2
+            val rightMax = mRectMainClose.right - maxActionsWidth
+
+            when (lastKnownDirection) {
+                Direction.LEFT_TO_RIGHT -> if (releasedChild.left in (leftThreshold + 1) until leftMax) {
+                    open(true)
+                } else {
+                    if (releasedChild.left > leftMax)
+                        onLongActionClickListener?.invoke(leftItemsViews.first(), leftItems.first())
+                    close(true)
+                }
+                Direction.RIGHT_TO_LEFT -> if (releasedChild.right in (rightMax + 1) until rightThreshold) {
+                    open(true)
+                } else {
+                    if (releasedChild.right < rightMax)
+                        onLongActionClickListener?.invoke(rightItemsViews.last(), rightItems.last())
+                    close(true)
+                }
+            }
+        }
+
+        override fun onEdgeDragStarted(edgeFlags: Int, pointerId: Int) {
+            super.onEdgeDragStarted(edgeFlags, pointerId)
+            if (isDragLocked) {
+                return
+            }
+
+            dragHelper.captureChildView(mainView, pointerId)
+        }
+
+        override fun onViewPositionChanged(changedView: View, left: Int, top: Int, dx: Int, dy: Int) {
+            super.onViewPositionChanged(changedView, left, top, dx, dy)
+
+            for (i in 0 until leftItemsViews.size) {
+                val v = leftItemsViews[i]
+                val progress = changedView.left.toDouble() / maxActionsWidth.toDouble()
+                if (progress > 1.0) continue
+                val myBound = (i + 1) * Math.min(width, height)
+                v.offsetLeftAndRight(Math.ceil(progress * myBound).toInt() - v.right)
+            }
+
+            for (i in 0 until rightItemsViews.size) {
+                val v = rightItemsViews[i]
+                val maxBound = (Math.min(width, height) * rightItemsViews.size).toDouble()
+                val progress = (mRectMainClose.right - changedView.right) / maxBound
+                if (progress > 1.0) continue
+                val finalLeft = i * Math.min(width, height)
+                val boundLeft = (mRectMainClose.right - maxActionsWidth) + finalLeft
+                v.offsetLeftAndRight(boundLeft + Math.ceil((1 - progress) * (maxActionsWidth - finalLeft)).toInt() - v.left)
+            }
+
+            val isMoved = mainView.left != lastMainLeft
+            if (swipeListener != null && isMoved) {
+                if (mainView.left == mRectMainClose.left && mainView.top == mRectMainClose.top) {
+                    swipeListener?.onClosed(this@SwipeToActionLayout)
+                    //TODO(st235): fix it!!!
+//                } else if (mainView.left == mRectMainOpen.left && mainView.top == mRectMainOpen.top) {
+//                    swipeListener?.onOpened(this@SwipeToActionLayout)
+                } else {
+                    swipeListener?.onSlide(this@SwipeToActionLayout, slideOffset)
+                }
+            }
+
+            lastMainLeft = mainView.left
+            ViewCompat.postInvalidateOnAnimation(this@SwipeToActionLayout)
+        }
+
+        override fun onViewDragStateChanged(state: Int) {
+            super.onViewDragStateChanged(state)
+            when (state) {
+                ViewDragHelper.STATE_IDLE ->
+                    // drag edge is left or right
+                    if (mainView.left == mRectMainClose.left) {
+                        this@SwipeToActionLayout.state = State.CLOSE
+                    } else {
+                        this@SwipeToActionLayout.state = State.OPEN
+                    }
+            }
+        }
+    }
+
+    interface SwipeListener {
+        fun onClosed(view: SwipeToActionLayout)
+
+        fun onOpened(view: SwipeToActionLayout)
+
+        fun onSlide(view: SwipeToActionLayout, slideOffset: Float)
+    }
+
+    init {
+        dragHelper = ViewDragHelper.create(this, 1.0f, mDragHelperCallback)
+        dragHelper.setEdgeTrackingEnabled(ViewDragHelper.DIRECTION_HORIZONTAL)
+
+        gestureDetector = GestureDetectorCompat(context, mGestureListener)
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        gestureDetector.onTouchEvent(event)
+        dragHelper.processTouchEvent(event)
+        return true
+    }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+        if (isDragLocked) {
+            return super.onInterceptTouchEvent(ev)
+        }
+
+        dragHelper.processTouchEvent(ev)
+        gestureDetector.onTouchEvent(ev)
+        accumulateDragDist(ev)
+
+        val couldBecomeClick = couldBecomeClick(ev) || couldBecomeActionClick(ev)
+        val settling = dragHelper.viewDragState == ViewDragHelper.STATE_SETTLING
+        val idleAfterScrolled = dragHelper.viewDragState == ViewDragHelper.STATE_IDLE && isScrolling
+
+        // must be placed as the last statement
+        lastKnownX = ev.x
+
+        // return true => intercept, cannot trigger onClick event
+        return !couldBecomeClick && (settling || idleAfterScrolled)
+    }
+
+    override fun onFinishInflate() {
+        super.onFinishInflate()
+
+        //TODO(st235): assert view size
+
+        // get views
+        mainView = getChildAt(0)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        swipableActionViewFactory.onOwnerBoundsChanged(w, h)
+    }
+
+    fun setLeftItems(swipableActions: List<SwipableAction>) {
+        viewTreeObserver.addOnGlobalLayoutListener(object: ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+                for (i in 0 until swipableActions.size) {
+                    leftItems.add(swipableActions[i])
+                    rightItems.add(swipableActions[swipableActions.size - i - 1])
+                }
+
+                leftItemsViews.addAll(swipableActionViewFactory.createLayout(leftItems, SwipableActionViewFactory.Gravity.LEFT))
+                rightItemsViews.addAll(swipableActionViewFactory.createLayout(rightItems, SwipableActionViewFactory.Gravity.RIGHT))
+                hudViewController.attachToParent(this@SwipeToActionLayout, swipableActions.first())
+
+                bringChildToFront(mainView)
+
+                maxActionsWidth = Math.min(width, height) * swipableActions.size
+                mRectMainClose.set(
+                    mainView.left,
+                    mainView.top,
+                    mainView.right,
+                    mainView.bottom
+                )
+            }
+        })
+    }
+
+    override fun computeScroll() {
+        if (dragHelper.continueSettling(true)) {
+            ViewCompat.postInvalidateOnAnimation(this)
+        }
+    }
+
+    fun open(animation: Boolean) {
+        doesOpenBeforeInit = true
+        isAborted = false
+
+        if (animation) {
+            state = State.OPENING
+            dragHelper.smoothSlideViewTo(mainView, mainOpenLeft, mainOpenTop)
+        } else {
+            state = State.OPEN
+            dragHelper.abort()
+        }
+
+        ViewCompat.postInvalidateOnAnimation(this@SwipeToActionLayout)
+    }
+
+    fun close(animation: Boolean) {
+        doesOpenBeforeInit = false
+        isAborted = false
+
+        if (animation) {
+            state = State.CLOSING
+            dragHelper.smoothSlideViewTo(mainView, mRectMainClose.left, mRectMainClose.top)
+        } else {
+            state = State.CLOSE
+            dragHelper.abort()
+
+            mainView.layout(
+                mRectMainClose.left,
+                mRectMainClose.top,
+                mRectMainClose.right,
+                mRectMainClose.bottom
+            )
+        }
+
+        ViewCompat.postInvalidateOnAnimation(this@SwipeToActionLayout)
+    }
+
+    fun setSwipeListener(listener: SwipeListener) {
+        swipeListener = listener
+    }
+
+    fun setLockDrag(lock: Boolean) {
+        isDragLocked = lock
+    }
+
+    protected fun abort() {
+        isAborted = true
+        dragHelper.abort()
+    }
+
+    private fun onDirectionChanged(newDirection: Direction, oldDirection: Direction) {
+    }
+
+    private fun onStateChanged(newValue: State, oldValue: State) {
+        when {
+            oldValue == State.CLOSE && (newValue == State.OPENING) -> {
+                for (i in 0 until leftItemsViews.size) {
+                    val v = leftItemsViews[i]
+                    v.offsetLeftAndRight(-v.width * (i + 1))
+                }
+
+                for (i in 0 until rightItemsViews.size) {
+                    val v = rightItemsViews[i]
+                    v.offsetLeftAndRight(v.width * (rightItemsViews.size - i))
+                }
+            }
+            oldValue != State.DRAG_FULLY_OPENED && newValue == State.DRAG_FULLY_OPENED -> {
+                hudViewController.revealAt(
+                    if (lastKnownDirection == Direction.LEFT_TO_RIGHT) leftItemsViews.first() else rightItemsViews.last(),
+                    lastKnownDirection
+                )
+            }
+            oldValue == State.DRAG_FULLY_OPENED && newValue == State.CLOSING_MANUALLY -> {
+                hudViewController.hideAt(
+                    if (lastKnownDirection == Direction.LEFT_TO_RIGHT) rightItemsViews.last() else leftItemsViews.first(),
+                    lastKnownDirection
+                )
+            }
+            newValue == State.CLOSE -> {
+                hudViewController.hide()
+            }
+        }
+    }
+
+    private fun couldBecomeClick(ev: MotionEvent): Boolean {
+        return mainView.isIn(ev) && !shouldInitiateADrag()
+    }
+
+    private fun couldBecomeActionClick(ev: MotionEvent): Boolean {
+        if (shouldInitiateADrag()) {
+            return false;
+        }
+
+        var isInAction = false
+        for (v in leftItemsViews) isInAction = isInAction or v.isIn(ev)
+        for (v in rightItemsViews) isInAction = isInAction or v.isIn(ev)
+        return isInAction
+    }
+
+    private fun View.isIn(ev: MotionEvent): Boolean {
+        val x = ev.x
+        val y = ev.y
+        val withinVertical = this.top <= y && y <= this.bottom
+        val withinHorizontal = this.left <= x && x <= this.right
+        return withinVertical && withinHorizontal
+    }
+
+    private fun shouldInitiateADrag(): Boolean {
+        val minDistToInitiateDrag = dragHelper.touchSlop.toFloat()
+        return dragDist >= minDistToInitiateDrag
+    }
+
+    private fun accumulateDragDist(ev: MotionEvent) {
+        val action = ev.action
+        if (action == MotionEvent.ACTION_DOWN) {
+            dragDist = 0f
+            return
+        }
+        val dragged = Math.abs(ev.x - lastKnownX)
+        dragDist += dragged
+    }
+}
