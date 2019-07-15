@@ -1,15 +1,18 @@
-package st235.com.swipeablecontainer
+package github.com.st235.lib_swipetoactionlayout
 
 import android.annotation.SuppressLint
+import android.graphics.PorterDuff
 import android.graphics.Rect
-import android.support.v7.widget.AppCompatImageView
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatImageView
+import st235.com.swipeablecontainer.toPx
 
-class SwipableActionViewFactory(private val swipeToActionLayout: SwipeToActionLayout,
-                                private val onActionClickListener: OnActionClickListener) {
+internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToActionLayout,
+                             private val onActionClickListener: OnActionClickListener
+) {
 
     @SuppressLint("RtlHardcoded")
     enum class Gravity(internal var androidGravity: Int) {
@@ -25,7 +28,7 @@ class SwipableActionViewFactory(private val swipeToActionLayout: SwipeToActionLa
         viewBounds.set(0, 0, newWidth, newHeight)
     }
 
-    fun createLayout(actions: List<SwipableAction>, gravity: Gravity): List<View> {
+    fun createLayout(actions: List<SwipeAction>, gravity: Gravity): List<View> {
         val views = mutableListOf<View>()
         val desiredSize = Math.min(viewBounds.width(), viewBounds.height())
 
@@ -65,12 +68,12 @@ class SwipableActionViewFactory(private val swipeToActionLayout: SwipeToActionLa
     }
 
     internal fun create(
-        action: SwipableAction,
-        desiredWidth: Int,
-        desiredHeight: Int,
-        marginLeft: Int = 0,
-        marginRight: Int = 0,
-        gravity: Gravity
+            action: SwipeAction,
+            desiredWidth: Int,
+            desiredHeight: Int,
+            marginLeft: Int = 0,
+            marginRight: Int = 0,
+            gravity: Gravity
     ): View {
         val actionView = LinearLayout(context)
         actionView.orientation = LinearLayout.VERTICAL
@@ -101,13 +104,14 @@ class SwipableActionViewFactory(private val swipeToActionLayout: SwipeToActionLa
         return actionView
     }
 
-    private fun createIconView(action: SwipableAction): View {
+    private fun createIconView(action: SwipeAction): View {
         val iconView = AppCompatImageView(context)
         iconView.setImageResource(action.iconId)
+        iconView.setColorFilter(action.iconTint, PorterDuff.Mode.SRC_ATOP);
         return iconView
     }
 
-    private fun createTextView(action: SwipableAction): View {
+    private fun createTextView(action: SwipeAction): View {
         val textView = TextView(context)
         textView.setText(action.text)
         textView.setTextColor(action.textColor)

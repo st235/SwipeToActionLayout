@@ -1,8 +1,8 @@
 package st235.com.swipeablecontainer
 
 import android.content.res.Resources
-import android.support.annotation.Px
 import android.util.TypedValue
+import androidx.annotation.Px
 
 /**
  * Converts values to its real pixel size

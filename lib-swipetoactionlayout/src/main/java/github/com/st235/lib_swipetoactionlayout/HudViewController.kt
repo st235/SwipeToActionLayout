@@ -1,4 +1,4 @@
-package st235.com.swipeablecontainer
+package github.com.st235.lib_swipetoactionlayout
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -11,9 +11,9 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 
 
-class HudViewController(
+internal class HudViewController(
     context: Context,
-    private val swipableActionViewFactory: SwipableActionViewFactory
+    private val swipeActionViewFactory: SwipeActionViewFactory
 ) {
 
     private val hudView: ViewGroup = FrameLayout(context)
@@ -21,27 +21,27 @@ class HudViewController(
     private lateinit var leftActionView: View
     private lateinit var rightActionView: View
 
-    fun attachToParent(parent: ViewGroup, firstAction: SwipableAction) {
+    fun attachToParent(parent: ViewGroup, firstAction: SwipeAction) {
         val lp = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         hudView.setBackgroundColor(Color.TRANSPARENT)
         parent.addView(hudView, lp)
 
 
         val desiredSize = Math.min(parent.width, parent.height)
-        leftActionView = swipableActionViewFactory.create(
+        leftActionView = swipeActionViewFactory.create(
             action = firstAction,
             desiredWidth = desiredSize,
             desiredHeight = desiredSize,
-            gravity = SwipableActionViewFactory.Gravity.LEFT
+            gravity = SwipeActionViewFactory.Gravity.LEFT
         )
 
         leftActionView.visibility = View.INVISIBLE
 
-        rightActionView = swipableActionViewFactory.create(
+        rightActionView = swipeActionViewFactory.create(
             action = firstAction,
             desiredWidth = desiredSize,
             desiredHeight = desiredSize,
-            gravity = SwipableActionViewFactory.Gravity.RIGHT
+            gravity = SwipeActionViewFactory.Gravity.RIGHT
         )
 
         rightActionView.visibility = View.INVISIBLE
@@ -68,7 +68,7 @@ class HudViewController(
 
         hudView.setBackgroundColor((actionView.background as ColorDrawable).color)
 
-        val reversedReveal = createRevealAt(action = actionView, isReversed = true)
+        val reversedReveal = createRevealAt(action = actionView, isReversed = true, direction = direction)
         reversedReveal.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator?) {
                 hudView.visibility = View.INVISIBLE
@@ -93,13 +93,21 @@ class HudViewController(
         hudView.setBackgroundColor((actionView.background as ColorDrawable).color)
 
         hudView.visibility = View.VISIBLE
-        val reveal = createRevealAt(actionView)
+        val reveal = createRevealAt(action = actionView, direction = direction)
 
         reveal.start()
     }
 
-    private fun createRevealAt(action: View, isReversed: Boolean = false): Animator {
-        val x = (action.right + action.left) / 2
+    private fun createRevealAt(action: View,
+                               isReversed: Boolean = false,
+                               direction: SwipeToActionLayout.Direction): Animator {
+        val x = when {
+            direction == SwipeToActionLayout.Direction.LEFT_TO_RIGHT && !isReversed -> action.left
+            direction == SwipeToActionLayout.Direction.RIGHT_TO_LEFT && isReversed -> action.left
+            direction == SwipeToActionLayout.Direction.RIGHT_TO_LEFT && !isReversed -> action.right
+            direction == SwipeToActionLayout.Direction.LEFT_TO_RIGHT && isReversed -> action.right
+            else -> (action.left + action.right) / 2
+        }
         val y = (action.top + action.bottom) / 2
 
         val endRadius = Math.hypot(hudView.width.toDouble(), hudView.height.toDouble()).toInt()
@@ -111,7 +119,7 @@ class HudViewController(
             ViewAnimationUtils.createCircularReveal(hudView, x, y, 0F, endRadius.toFloat())
         }
 
-        reveal.duration = 250L
+        reveal.duration = 200L
 
         return reveal
     }
