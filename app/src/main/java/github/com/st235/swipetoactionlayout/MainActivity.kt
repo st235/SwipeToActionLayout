@@ -1,8 +1,8 @@
 package github.com.st235.swipetoactionlayout
 
 import android.graphics.Color
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import github.com.st235.lib_swipetoactionlayout.SwipeAction
 import github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
 
@@ -16,7 +16,6 @@ class MainActivity : AppCompatActivity() {
 
         swipeToActionLayout = findViewById(R.id.swipeToActionLayout)
 
-        swipeToActionLayout.setDragDirections(SwipeToActionLayout.Drag.FROM_LEFT_TO_RIGHT)
         swipeToActionLayout.setItems(
                 listOf(
                         SwipeAction(0xFFFBDAEE.toInt(), R.drawable.baseline_call_24, R.string.action_call, Color.BLACK, Color.BLACK),
