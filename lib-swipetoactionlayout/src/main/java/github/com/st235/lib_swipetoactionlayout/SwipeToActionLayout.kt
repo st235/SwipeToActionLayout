@@ -12,12 +12,19 @@ import androidx.annotation.Px
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper
+import github.com.st235.lib_swipetoactionlayout.utils.clamp
 
 typealias OnActionClickListener = (view: View, action: SwipeAction) -> Unit
 
 class SwipeToActionLayout @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
+
+    enum class DragDirections {
+        FROM_RIGHT_TO_LEFT,
+        FROM_LEFT_TO_RIGHT,
+        BOTH
+    }
 
     internal enum class Direction {
         NONE,
@@ -54,6 +61,8 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
     private lateinit var mainView: View
     private var lastKnownMainViewLeftPosition = 0
+    private var dragDirection = DragDirections.BOTH
+    private var isFullSwipeActionAllowed: Boolean = true
 
     private val swipeActionViewFactory = SwipeActionViewFactory(this) { v, a ->
         onActionClickListener?.invoke(v, a)
@@ -92,12 +101,6 @@ class SwipeToActionLayout @JvmOverloads constructor(
     }
 
     private var lastKnownSwipeDirection = Direction.NONE
-    set(value) {
-        if (value != field) {
-            onDirectionChanged(value, field)
-        }
-        field = value
-    }
 
     private var dragDist = 0f
 
@@ -179,22 +182,40 @@ class SwipeToActionLayout @JvmOverloads constructor(
         swipeActionViewFactory.onOwnerBoundsChanged(w, h)
     }
 
-    fun setItems(swipeActions: List<SwipeAction>) {
+    fun setItems(
+        swipeActions: List<SwipeAction>,
+        dragDirection: DragDirections = DragDirections.BOTH,
+        isFullSwipeActionAllowed: Boolean = true) {
         viewTreeObserver.addOnGlobalLayoutListener(object: ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+                this@SwipeToActionLayout.dragDirection = dragDirection
+                this@SwipeToActionLayout.isFullSwipeActionAllowed = isFullSwipeActionAllowed
 
                 for (i in 0 until swipeActions.size) {
                     leftItems.add(swipeActions[i])
                     rightItems.add(swipeActions[swipeActions.size - i - 1])
                 }
 
-                leftItemsViews.addAll(swipeActionViewFactory.createLayout(leftItems,
-                    SwipeActionViewFactory.Gravity.LEFT
-                ))
-                rightItemsViews.addAll(swipeActionViewFactory.createLayout(rightItems,
-                    SwipeActionViewFactory.Gravity.RIGHT
-                ))
+                if (dragDirection == DragDirections.BOTH || dragDirection == DragDirections.FROM_LEFT_TO_RIGHT) {
+                    leftItemsViews.addAll(
+                        swipeActionViewFactory.createLayout(
+                            leftItems,
+                            SwipeActionViewFactory.Gravity.LEFT
+                        )
+                    )
+                }
+
+                if (dragDirection == DragDirections.BOTH || dragDirection == DragDirections.FROM_RIGHT_TO_LEFT) {
+                    rightItemsViews.addAll(
+                        swipeActionViewFactory.createLayout(
+                            rightItems,
+                            SwipeActionViewFactory.Gravity.RIGHT
+                        )
+                    )
+                }
+
                 hudViewController.attachToParent(this@SwipeToActionLayout, swipeActions.first())
 
                 bringChildToFront(mainView)
@@ -256,9 +277,6 @@ class SwipeToActionLayout @JvmOverloads constructor(
     protected fun abort() {
         isAborted = true
         dragHelper.abort()
-    }
-
-    private fun onDirectionChanged(newDirection: Direction, oldDirection: Direction) {
     }
 
     private fun onStateChanged(newValue: State, oldValue: State) {
@@ -406,7 +424,23 @@ class SwipeToActionLayout @JvmOverloads constructor(
         }
 
         override fun clampViewPositionHorizontal(child: View, left: Int, dx: Int): Int {
-            return left
+            return when(dragDirection) {
+                DragDirections.FROM_RIGHT_TO_LEFT -> {
+                    val leftBound = viewClosedBounds.left - if (isFullSwipeActionAllowed) viewClosedBounds.width() else maxActionsWidth
+                    clamp(left, leftBound, viewClosedBounds.left)
+                }
+                DragDirections.FROM_LEFT_TO_RIGHT -> {
+                    val rightBound = viewClosedBounds.left + if (isFullSwipeActionAllowed) viewClosedBounds.width() else maxActionsWidth
+                    clamp(left, viewClosedBounds.left,  rightBound)
+                }
+                else -> {
+                    if (isFullSwipeActionAllowed) {
+                        left
+                    } else {
+                        clamp(left, viewClosedBounds.left - maxActionsWidth,  viewClosedBounds.left + maxActionsWidth)
+                    }
+                }
+            }
         }
 
         override fun onViewReleased(releasedChild: View, xvel: Float, yvel: Float) {
@@ -417,14 +451,14 @@ class SwipeToActionLayout @JvmOverloads constructor(
             val rightMax = viewClosedBounds.right - maxActionsWidth
 
             when (lastKnownSwipeDirection) {
-                Direction.LEFT_TO_RIGHT -> if (releasedChild.left in (leftThreshold + 1) until leftMax) {
+                Direction.LEFT_TO_RIGHT -> if (releasedChild.left in (leftThreshold + 1)..leftMax) {
                     open(true)
                 } else {
                     if (releasedChild.left > leftMax)
                         onLongActionClickListener?.invoke(leftItemsViews.first(), leftItems.first())
                     close(true)
                 }
-                Direction.RIGHT_TO_LEFT -> if (releasedChild.right in (rightMax + 1) until rightThreshold) {
+                Direction.RIGHT_TO_LEFT -> if (releasedChild.right in (rightMax + 1)..rightThreshold) {
                     open(true)
                 } else {
                     if (releasedChild.right < rightMax)
