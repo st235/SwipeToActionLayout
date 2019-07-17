@@ -8,11 +8,13 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.FrameLayout
+import androidx.annotation.FloatRange
 import androidx.annotation.Px
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper
 import github.com.st235.lib_swipetoactionlayout.utils.clamp
+import java.lang.IllegalStateException
 
 typealias OnActionClickListener = (view: View, action: SwipeAction) -> Unit
 
@@ -45,13 +47,22 @@ class SwipeToActionLayout @JvmOverloads constructor(
         DRAG_FULLY_OPENED
     }
 
-    var isDragLocked = false
-
     val isOpened: Boolean
         get() = state == State.OPEN
 
     val isClosed: Boolean
         get() = state == State.CLOSE
+
+    var isDragLocked = false
+
+    @FloatRange(from = 0.0, to = 1.0)
+    var thresholdToOpenView: Float = 0.5F
+    set(value) {
+        if (value < 0.0F || value > 1.0F) {
+            throw IllegalStateException("Threshold cannot be outside of 0..1 range")
+        }
+        field = value
+    }
 
     var onSwipeListener: OnSwipeListener? = null
 
@@ -189,6 +200,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
         viewTreeObserver.addOnGlobalLayoutListener(object: ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 viewTreeObserver.removeOnGlobalLayoutListener(this)
+                clearActions()
 
                 this@SwipeToActionLayout.dragDirection = dragDirection
                 this@SwipeToActionLayout.isFullSwipeActionAllowed = isFullSwipeActionAllowed
@@ -308,6 +320,18 @@ class SwipeToActionLayout @JvmOverloads constructor(
                 hudViewController.hide()
             }
         }
+    }
+
+    private fun clearActions() {
+        for (v in leftItemsViews) removeView(v)
+        for (v in rightItemsViews) removeView(v)
+        hudViewController.detachFromParent(this)
+
+        leftItems.clear()
+        rightItems.clear()
+
+        leftItemsViews.clear()
+        rightItemsViews.clear()
     }
 
     private fun couldBecomeClick(ev: MotionEvent): Boolean {
@@ -444,10 +468,10 @@ class SwipeToActionLayout @JvmOverloads constructor(
         }
 
         override fun onViewReleased(releasedChild: View, xvel: Float, yvel: Float) {
-            val leftThreshold = viewClosedBounds.left + maxActionsWidth / 2
+            val leftThreshold = (viewClosedBounds.left + maxActionsWidth * thresholdToOpenView).toInt()
             val leftMax = viewClosedBounds.left + maxActionsWidth
 
-            val rightThreshold = viewClosedBounds.right - maxActionsWidth/ 2
+            val rightThreshold = (viewClosedBounds.right - maxActionsWidth * thresholdToOpenView).toInt()
             val rightMax = viewClosedBounds.right - maxActionsWidth
 
             when (lastKnownSwipeDirection) {

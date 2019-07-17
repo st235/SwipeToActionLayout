@@ -50,6 +50,10 @@ internal class HudViewController(
         hudView.addView(rightActionView, rightActionView.layoutParams)
     }
 
+    fun detachFromParent(parent: ViewGroup) {
+        parent.removeView(hudView)
+    }
+
     fun hide() {
         hudView.visibility = View.INVISIBLE
     }

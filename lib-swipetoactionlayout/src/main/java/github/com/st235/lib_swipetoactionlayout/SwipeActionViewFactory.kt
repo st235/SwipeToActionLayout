@@ -3,6 +3,7 @@ package github.com.st235.lib_swipetoactionlayout
 import android.annotation.SuppressLint
 import android.graphics.PorterDuff
 import android.graphics.Rect
+import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -116,6 +117,7 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
         textView.setText(action.text)
         textView.setTextColor(action.textColor)
         textView.textSize = 14F
+        textView.gravity = android.view.Gravity.CENTER
         return textView
     }
 }

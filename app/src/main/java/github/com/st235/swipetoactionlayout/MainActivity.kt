@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         swipeToActionLayout = findViewById(R.id.swipeToActionLayout)
+        swipeToActionLayout.thresholdToOpenView = 0.0F
 
         swipeToActionLayout.setItems(
                 listOf(
