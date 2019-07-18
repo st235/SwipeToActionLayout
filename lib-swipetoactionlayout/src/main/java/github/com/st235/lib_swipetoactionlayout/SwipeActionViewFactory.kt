@@ -37,7 +37,7 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
         val desiredSize = Math.min(parentBounds.width(), parentBounds.height())
         lastKnownActionInfo = actionParamsResolver.obtainActionInfoFor(
             (parentBounds.width() * 0.9F).toInt(),
-            desiredSize, desiredSize, HORIZONTAL_MARGIN_IN_DP, actions)
+            Math.min(desiredSize, parentBounds.width() / actions.size), desiredSize, HORIZONTAL_MARGIN_IN_DP, actions)
 
         var margin = (actions.size - 1) * desiredSize
 
@@ -94,9 +94,9 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
             LinearLayout.LayoutParams.WRAP_CONTENT)
 
         val textLayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT)
+            32.toPx())
 
-        textLayoutParams.topMargin = 4.toPx()
+        iconLayoutParams.topMargin = 8.toPx()
         textLayoutParams.leftMargin = HORIZONTAL_MARGIN_IN_DP.toPx().toInt()
         textLayoutParams.rightMargin = HORIZONTAL_MARGIN_IN_DP.toPx().toInt()
 
@@ -127,7 +127,7 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
         textView.textSize = actionInfo.textSize
         textView.gravity = android.view.Gravity.CENTER
         textView.maxLines = actionInfo.maxLines
-        textView.setLineSpacing(0F, 1F)
+        textView.setLineSpacing(0F, 0.9F)
 
         if (actionInfo.shouldTruncateText) {
             textView.ellipsize = TextUtils.TruncateAt.END

@@ -27,7 +27,6 @@ internal class ActionParamsResolver {
         @Dimension(unit = Dimension.DP) horizontalMargins: Float,
         actions: List<SwipeAction>
     ): ActionInfo {
-        var maxText: CharSequence = ""
         var maxTextWidth = 0
 
         var doesAllActionsFits = true
@@ -40,7 +39,6 @@ internal class ActionParamsResolver {
             }
 
             if (currentTextWidth > maxTextWidth) {
-                maxText = action.text
                 maxTextWidth = currentTextWidth
             }
         }

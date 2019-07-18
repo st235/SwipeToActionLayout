@@ -53,8 +53,10 @@ internal class HudViewController(
         parent.removeView(hudView)
     }
 
-    fun hide() {
-        hudView.visibility = View.INVISIBLE
+    fun hideIfNeeded() {
+        if (hudView.visibility != View.INVISIBLE) {
+            hudView.visibility = View.INVISIBLE
+        }
     }
 
     fun hideAt(actionView: View, direction: SwipeToActionLayout.Direction) {

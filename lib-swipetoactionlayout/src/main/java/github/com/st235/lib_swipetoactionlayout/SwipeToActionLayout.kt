@@ -3,7 +3,6 @@ package github.com.st235.lib_swipetoactionlayout
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -15,7 +14,6 @@ import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper
 import github.com.st235.lib_swipetoactionlayout.utils.clamp
-import java.lang.IllegalStateException
 
 typealias OnActionClickListener = (view: View, action: SwipeAction) -> Unit
 
@@ -45,6 +43,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
         CLOSING_MANUALLY,
         OPEN,
         OPENING,
+        OPENING_MANUALLY,
         DRAG_FULLY_OPENED
     }
 
@@ -77,6 +76,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
     private var isFullSwipeActionAllowed: Boolean = true
 
     private val swipeActionViewFactory = SwipeActionViewFactory(this) { v, a ->
+        close(true)
         onActionClickListener?.invoke(v, a)
     }
 
@@ -295,6 +295,8 @@ class SwipeToActionLayout @JvmOverloads constructor(
     }
 
     private fun onStateChanged(newValue: State, oldValue: State) {
+        isDragLocked = newValue == State.CLOSING || newValue == State.OPENING
+
         when {
             oldValue == State.CLOSE && (newValue == State.OPENING) -> {
                 for (i in 0 until leftItemsViews.size) {
@@ -320,7 +322,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
                 )
             }
             newValue == State.CLOSE -> {
-                hudViewController.hide()
+                hudViewController.hideIfNeeded()
             }
         }
     }
@@ -488,8 +490,9 @@ class SwipeToActionLayout @JvmOverloads constructor(
                 Direction.RIGHT_TO_LEFT -> if (releasedChild.right in (rightMax + 1)..rightThreshold) {
                     open(true)
                 } else {
-                    if (releasedChild.right < rightMax)
+                    if (releasedChild.right < rightMax) {
                         onLongActionClickListener?.invoke(rightItemsViews.last(), rightItems.last())
+                    }
                     close(true)
                 }
             }
