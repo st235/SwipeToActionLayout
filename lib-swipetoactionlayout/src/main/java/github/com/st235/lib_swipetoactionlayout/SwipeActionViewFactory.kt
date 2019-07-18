@@ -3,7 +3,7 @@ package github.com.st235.lib_swipetoactionlayout
 import android.annotation.SuppressLint
 import android.graphics.PorterDuff
 import android.graphics.Rect
-import android.view.Gravity
+import android.text.TextUtils
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -15,6 +15,8 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
                              private val onActionClickListener: OnActionClickListener
 ) {
 
+    val HORIZONTAL_MARGIN_IN_DP = 8F
+
     @SuppressLint("RtlHardcoded")
     enum class Gravity(internal var androidGravity: Int) {
         LEFT(androidGravity = android.view.Gravity.LEFT),
@@ -22,16 +24,20 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
     }
 
     private val context = swipeToActionLayout.context
-
-    private val viewBounds = Rect()
+    private val parentBounds = Rect()
+    private val actionParamsResolver = ActionParamsResolver()
+    internal lateinit var lastKnownActionInfo: ActionParamsResolver.ActionInfo
 
     fun onOwnerBoundsChanged(newWidth: Int, newHeight: Int) {
-        viewBounds.set(0, 0, newWidth, newHeight)
+        parentBounds.set(0, 0, newWidth, newHeight)
     }
 
     fun createLayout(actions: List<SwipeAction>, gravity: Gravity): List<View> {
         val views = mutableListOf<View>()
-        val desiredSize = Math.min(viewBounds.width(), viewBounds.height())
+        val desiredSize = Math.min(parentBounds.width(), parentBounds.height())
+        lastKnownActionInfo = actionParamsResolver.obtainActionInfoFor(
+            (parentBounds.width() * 0.9F).toInt(),
+            desiredSize, desiredSize, HORIZONTAL_MARGIN_IN_DP, actions)
 
         var margin = (actions.size - 1) * desiredSize
 
@@ -39,7 +45,7 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
             for (i in (actions.size - 1) downTo 0) {
                 val action = actions[i]
 
-                val actionView = create(action, desiredSize, desiredSize, margin, 0, gravity)
+                val actionView = create(action, lastKnownActionInfo, margin, 0, gravity)
                 swipeToActionLayout.addView(actionView, actionView.layoutParams)
 
                 views.add(0, actionView)
@@ -54,7 +60,7 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
             for (i in 0 until actions.size) {
                 val action = actions[i]
 
-                val actionView = create(action, desiredSize, desiredSize, 0, margin, gravity)
+                val actionView = create(action, lastKnownActionInfo, 0, margin, gravity)
                 swipeToActionLayout.addView(actionView, actionView.layoutParams)
 
                 views.add(actionView)
@@ -70,8 +76,7 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
 
     internal fun create(
             action: SwipeAction,
-            desiredWidth: Int,
-            desiredHeight: Int,
+            actionInfo: ActionParamsResolver.ActionInfo,
             marginLeft: Int = 0,
             marginRight: Int = 0,
             gravity: Gravity
@@ -90,12 +95,15 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
 
         val textLayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT)
+
         textLayoutParams.topMargin = 4.toPx()
+        textLayoutParams.leftMargin = HORIZONTAL_MARGIN_IN_DP.toPx().toInt()
+        textLayoutParams.rightMargin = HORIZONTAL_MARGIN_IN_DP.toPx().toInt()
 
         actionView.addView(createIconView(action), iconLayoutParams)
-        actionView.addView(createTextView(action), textLayoutParams)
+        actionView.addView(createTextView(action, actionInfo), textLayoutParams)
 
-        val actionLayoutParams = FrameLayout.LayoutParams(desiredWidth, desiredHeight)
+        val actionLayoutParams = FrameLayout.LayoutParams(actionInfo.actionWidth, actionInfo.actionHeight)
         actionLayoutParams.leftMargin = marginLeft
         actionLayoutParams.rightMargin = marginRight
         actionLayoutParams.gravity = gravity.androidGravity
@@ -108,16 +116,23 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
     private fun createIconView(action: SwipeAction): View {
         val iconView = AppCompatImageView(context)
         iconView.setImageResource(action.iconId)
-        iconView.setColorFilter(action.iconTint, PorterDuff.Mode.SRC_ATOP);
+        iconView.setColorFilter(action.iconTint, PorterDuff.Mode.SRC_ATOP)
         return iconView
     }
 
-    private fun createTextView(action: SwipeAction): View {
+    private fun createTextView(action: SwipeAction, actionInfo: ActionParamsResolver.ActionInfo): View {
         val textView = TextView(context)
-        textView.setText(action.text)
+        textView.text = action.text
         textView.setTextColor(action.textColor)
-        textView.textSize = 14F
+        textView.textSize = actionInfo.textSize
         textView.gravity = android.view.Gravity.CENTER
+        textView.maxLines = actionInfo.maxLines
+        textView.setLineSpacing(0F, 1F)
+
+        if (actionInfo.shouldTruncateText) {
+            textView.ellipsize = TextUtils.TruncateAt.END
+        }
+
         return textView
     }
 }

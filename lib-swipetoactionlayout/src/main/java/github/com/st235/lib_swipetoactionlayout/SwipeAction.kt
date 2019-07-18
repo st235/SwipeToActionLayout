@@ -8,7 +8,7 @@ import androidx.annotation.StringRes
 data class SwipeAction(
     @ColorInt val color: Int,
     @DrawableRes val iconId: Int,
-    @StringRes val text: Int,
+    val text: CharSequence,
     @ColorInt val iconTint: Int = Color.WHITE,
     @ColorInt val textColor: Int = Color.WHITE
 )

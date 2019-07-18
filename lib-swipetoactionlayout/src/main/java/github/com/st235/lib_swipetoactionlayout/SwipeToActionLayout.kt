@@ -3,6 +3,7 @@ package github.com.st235.lib_swipetoactionlayout
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
+import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -93,6 +94,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
     private val viewClosedBounds = Rect()
 
     private var maxActionsWidth = 0
+    private var oneActionWidth = 0
 
     @Px
     private val minDistRequestDisallowParent = 0
@@ -232,7 +234,8 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
                 bringChildToFront(mainView)
 
-                maxActionsWidth = Math.min(width, height) * swipeActions.size
+                oneActionWidth = swipeActionViewFactory.lastKnownActionInfo.actionWidth
+                maxActionsWidth = oneActionWidth * swipeActions.size
                 viewClosedBounds.set(
                     mainView.left,
                     mainView.top,
@@ -508,16 +511,16 @@ class SwipeToActionLayout @JvmOverloads constructor(
                 val v = leftItemsViews[i]
                 val progress = changedView.left.toDouble() / maxActionsWidth.toDouble()
                 if (progress > 1.0) continue
-                val myBound = (i + 1) * Math.min(width, height)
+                val myBound = (i + 1) * oneActionWidth
                 v.offsetLeftAndRight(Math.ceil(progress * myBound).toInt() - v.right)
             }
 
             for (i in 0 until rightItemsViews.size) {
                 val v = rightItemsViews[i]
-                val maxBound = (Math.min(width, height) * rightItemsViews.size).toDouble()
+                val maxBound = maxActionsWidth.toDouble()
                 val progress = (viewClosedBounds.right - changedView.right) / maxBound
                 if (progress > 1.0) continue
-                val finalLeft = i * Math.min(width, height)
+                val finalLeft = i * oneActionWidth
                 val boundLeft = (viewClosedBounds.right - maxActionsWidth) + finalLeft
                 v.offsetLeftAndRight(boundLeft + Math.ceil((1 - progress) * (maxActionsWidth - finalLeft)).toInt() - v.left)
             }

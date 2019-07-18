@@ -28,10 +28,10 @@ internal class HudViewController(
 
 
         val desiredSize = Math.min(parent.width, parent.height)
+
         leftActionView = swipeActionViewFactory.create(
             action = firstAction,
-            desiredWidth = desiredSize,
-            desiredHeight = desiredSize,
+            actionInfo = swipeActionViewFactory.lastKnownActionInfo,
             gravity = SwipeActionViewFactory.Gravity.LEFT
         )
 
@@ -39,8 +39,7 @@ internal class HudViewController(
 
         rightActionView = swipeActionViewFactory.create(
             action = firstAction,
-            desiredWidth = desiredSize,
-            desiredHeight = desiredSize,
+            actionInfo = swipeActionViewFactory.lastKnownActionInfo,
             gravity = SwipeActionViewFactory.Gravity.RIGHT
         )
 

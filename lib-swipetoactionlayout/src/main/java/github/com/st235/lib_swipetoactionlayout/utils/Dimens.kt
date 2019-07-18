@@ -11,9 +11,9 @@ import androidx.annotation.Px
  * @return value in pixels
  */
 @Px
-internal fun Int.toPx(): Int {
+internal fun Int.toPx(units: Int = TypedValue.COMPLEX_UNIT_DIP): Int {
     return TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP, this.toFloat(),
+        units, this.toFloat(),
         Resources.getSystem().displayMetrics).toInt()
 }
 
@@ -23,8 +23,8 @@ internal fun Int.toPx(): Int {
  *
  * @return value in pixels
  */
-internal fun Float.toPx(): Float {
+internal fun Float.toPx(units: Int = TypedValue.COMPLEX_UNIT_DIP): Float {
     return TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP, this,
+        units, this,
         Resources.getSystem().displayMetrics)
 }
