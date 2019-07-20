@@ -5,8 +5,7 @@ import android.util.TypedValue
 import androidx.annotation.Dimension
 import androidx.annotation.IntRange
 import androidx.annotation.Px
-import github.com.st235.lib_swipetoactionlayout.utils.clamp
-import st235.com.swipeablecontainer.toPx
+import github.com.st235.lib_swipetoactionlayout.utils.toPx
 
 internal class ActionParamsResolver {
 
@@ -32,7 +31,8 @@ internal class ActionParamsResolver {
         var doesAllActionsFits = true
 
         for (action in actions) {
-            val currentTextWidth = measureTextWidthWithMargins(text = action.text, textSize = 14.0F, horizontalMargins = horizontalMargins)
+            val currentTextWidth =
+                measureTextWidthWithMargins(text = action.text, textSize = 14.0F, horizontalMargins = horizontalMargins)
 
             if (currentTextWidth > optimalActionWidth) {
                 doesAllActionsFits = false
@@ -51,11 +51,13 @@ internal class ActionParamsResolver {
             return ActionInfo(14.0F, maxTextWidth, optimalActionHeight, maxLines = 1)
         }
 
-        return ActionInfo(14.0F,
+        return ActionInfo(
+            14.0F,
             Math.min((maxTextWidth / 1.5).toInt(), maxWidth / actions.size),
             optimalActionHeight,
             2,
-            true)
+            true
+        )
     }
 
     @Px

@@ -9,10 +9,11 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
-import st235.com.swipeablecontainer.toPx
+import github.com.st235.lib_swipetoactionlayout.utils.toPx
 
-internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToActionLayout,
-                             private val onActionClickListener: OnActionClickListener
+internal class SwipeActionViewFactory(
+    private val swipeToActionLayout: SwipeToActionLayout,
+    private val onActionClickListener: OnActionClickListener
 ) {
 
     val HORIZONTAL_MARGIN_IN_DP = 8F
@@ -37,7 +38,8 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
         val desiredSize = Math.min(parentBounds.width(), parentBounds.height())
         lastKnownActionInfo = actionParamsResolver.obtainActionInfoFor(
             (parentBounds.width() * 0.9F).toInt(),
-            Math.min(desiredSize, parentBounds.width() / actions.size), desiredSize, HORIZONTAL_MARGIN_IN_DP, actions)
+            Math.min(desiredSize, parentBounds.width() / actions.size), desiredSize, HORIZONTAL_MARGIN_IN_DP, actions
+        )
 
         var margin = (actions.size - 1) * desiredSize
 
@@ -75,11 +77,11 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
     }
 
     internal fun create(
-            action: SwipeAction,
-            actionInfo: ActionParamsResolver.ActionInfo,
-            marginLeft: Int = 0,
-            marginRight: Int = 0,
-            gravity: Gravity
+        action: SwipeAction,
+        actionInfo: ActionParamsResolver.ActionInfo,
+        marginLeft: Int = 0,
+        marginRight: Int = 0,
+        gravity: Gravity
     ): View {
         val actionView = LinearLayout(context)
         actionView.orientation = LinearLayout.VERTICAL
@@ -90,11 +92,15 @@ internal class SwipeActionViewFactory(private val swipeToActionLayout: SwipeToAc
         actionView.isClickable = true
         actionView.setOnClickListener { onActionClickListener(actionView, action) }
 
-        val iconLayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT)
+        val iconLayoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
 
-        val textLayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-            32.toPx())
+        val textLayoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            32.toPx()
+        )
 
         iconLayoutParams.topMargin = 8.toPx()
         textLayoutParams.leftMargin = HORIZONTAL_MARGIN_IN_DP.toPx().toInt()

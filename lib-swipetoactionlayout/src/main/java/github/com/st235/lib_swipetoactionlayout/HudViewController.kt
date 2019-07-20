@@ -60,7 +60,7 @@ internal class HudViewController(
     }
 
     fun hideAt(actionView: View, direction: SwipeToActionLayout.Direction) {
-        when(direction) {
+        when (direction) {
             SwipeToActionLayout.Direction.RIGHT_TO_LEFT -> {
                 leftActionView.visibility = View.VISIBLE
                 rightActionView.visibility = View.INVISIBLE
@@ -84,7 +84,7 @@ internal class HudViewController(
     }
 
     fun revealAt(actionView: View, direction: SwipeToActionLayout.Direction) {
-        when(direction) {
+        when (direction) {
             SwipeToActionLayout.Direction.LEFT_TO_RIGHT -> {
                 leftActionView.visibility = View.VISIBLE
                 rightActionView.visibility = View.INVISIBLE
@@ -103,9 +103,11 @@ internal class HudViewController(
         reveal.start()
     }
 
-    private fun createRevealAt(action: View,
-                               isReversed: Boolean = false,
-                               direction: SwipeToActionLayout.Direction): Animator {
+    private fun createRevealAt(
+        action: View,
+        isReversed: Boolean = false,
+        direction: SwipeToActionLayout.Direction
+    ): Animator {
         val x = when {
             direction == SwipeToActionLayout.Direction.LEFT_TO_RIGHT && !isReversed -> action.left
             direction == SwipeToActionLayout.Direction.RIGHT_TO_LEFT && isReversed -> action.left
@@ -118,11 +120,11 @@ internal class HudViewController(
         val endRadius = Math.hypot(hudView.width.toDouble(), hudView.height.toDouble()).toInt()
 
         val reveal =
-        if (isReversed) {
-            ViewAnimationUtils.createCircularReveal(hudView, x, y, endRadius.toFloat(), 0F)
-        } else {
-            ViewAnimationUtils.createCircularReveal(hudView, x, y, 0F, endRadius.toFloat())
-        }
+            if (isReversed) {
+                ViewAnimationUtils.createCircularReveal(hudView, x, y, endRadius.toFloat(), 0F)
+            } else {
+                ViewAnimationUtils.createCircularReveal(hudView, x, y, 0F, endRadius.toFloat())
+            }
 
         reveal.duration = 200L
 

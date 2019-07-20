@@ -57,12 +57,12 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
     @FloatRange(from = 0.0, to = 1.0)
     var thresholdToOpenView: Float = 0.5F
-    set(value) {
-        if (value < 0.0F || value > 1.0F) {
-            throw IllegalStateException("Threshold cannot be outside of 0..1 range")
+        set(value) {
+            if (value < 0.0F || value > 1.0F) {
+                throw IllegalStateException("Threshold cannot be outside of 0..1 range")
+            }
+            field = value
         }
-        field = value
-    }
 
     var onSwipeListener: OnSwipeListener? = null
 
@@ -80,7 +80,8 @@ class SwipeToActionLayout @JvmOverloads constructor(
         onActionClickListener?.invoke(v, a)
     }
 
-    private val hudViewController = HudViewController(context = context, swipeActionViewFactory = swipeActionViewFactory)
+    private val hudViewController =
+        HudViewController(context = context, swipeActionViewFactory = swipeActionViewFactory)
 
     private val leftItems = mutableListOf<SwipeAction>()
     private val leftItemsViews = mutableListOf<View>()
@@ -106,12 +107,12 @@ class SwipeToActionLayout @JvmOverloads constructor(
     private var isScrolling = false
 
     private var state = State.CLOSE
-    set(value) {
-        if (value != field) {
-            onStateChanged(value, field)
+        set(value) {
+            if (value != field) {
+                onStateChanged(value, field)
+            }
+            field = value
         }
-        field = value
-    }
 
     private var lastKnownSwipeDirection = Direction.NONE
 
@@ -123,32 +124,32 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
     private val openedEdgePosition: Int
         get() = when (lastKnownSwipeDirection) {
-                Direction.LEFT_TO_RIGHT -> viewClosedBounds.left + maxActionsWidth
-                Direction.RIGHT_TO_LEFT -> viewClosedBounds.left - maxActionsWidth
-                else -> 0
+            Direction.LEFT_TO_RIGHT -> viewClosedBounds.left + maxActionsWidth
+            Direction.RIGHT_TO_LEFT -> viewClosedBounds.left - maxActionsWidth
+            else -> 0
         }
 
     private val distToClosestEdge: Int
         get() = when (lastKnownSwipeDirection) {
-                Direction.LEFT_TO_RIGHT -> {
-                    val pivotRight = viewClosedBounds.left + maxActionsWidth
+            Direction.LEFT_TO_RIGHT -> {
+                val pivotRight = viewClosedBounds.left + maxActionsWidth
 
-                    Math.min(
-                        mainView.left - viewClosedBounds.left,
-                        pivotRight - mainView.left
-                    )
-                }
-
-                Direction.RIGHT_TO_LEFT -> {
-                    val pivotLeft = viewClosedBounds.right - maxActionsWidth
-
-                    Math.min(
-                        mainView.right - pivotLeft,
-                        viewClosedBounds.right - mainView.right
-                    )
-                }
-                Direction.NONE -> 0
+                Math.min(
+                    mainView.left - viewClosedBounds.left,
+                    pivotRight - mainView.left
+                )
             }
+
+            Direction.RIGHT_TO_LEFT -> {
+                val pivotLeft = viewClosedBounds.right - maxActionsWidth
+
+                Math.min(
+                    mainView.right - pivotLeft,
+                    viewClosedBounds.right - mainView.right
+                )
+            }
+            Direction.NONE -> 0
+        }
 
     init {
         dragHelper = ViewDragHelper.create(this, 1.0f, dragHelperCallback)
@@ -198,8 +199,9 @@ class SwipeToActionLayout @JvmOverloads constructor(
     fun setItems(
         swipeActions: List<SwipeAction>,
         dragDirection: DragDirections = DragDirections.BOTH,
-        isFullSwipeActionAllowed: Boolean = true) {
-        viewTreeObserver.addOnGlobalLayoutListener(object: ViewTreeObserver.OnGlobalLayoutListener {
+        isFullSwipeActionAllowed: Boolean = true
+    ) {
+        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 viewTreeObserver.removeOnGlobalLayoutListener(this)
                 clearActions()
@@ -295,7 +297,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
     }
 
     private fun onStateChanged(newValue: State, oldValue: State) {
-        isDragLocked = newValue == State.CLOSING || newValue == State.OPENING
+        isDragLocked = newValue == State.CLOSING
 
         when {
             oldValue == State.CLOSE && (newValue == State.OPENING) -> {
@@ -377,7 +379,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
         dragDist += dragged
     }
 
-    private inner class SwipeToActionGestureListener: GestureDetector.SimpleOnGestureListener() {
+    private inner class SwipeToActionGestureListener : GestureDetector.SimpleOnGestureListener() {
         private var hasDisallowed = false
 
         override fun onDown(e: MotionEvent): Boolean {
@@ -388,7 +390,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
         override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             isScrolling = true
-            return false
+            return true
         }
 
         override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
@@ -433,10 +435,10 @@ class SwipeToActionLayout @JvmOverloads constructor(
         }
     }
 
-    private inner class SwipeToActionViewHelperCallback: ViewDragHelper.Callback() {
+    private inner class SwipeToActionViewHelperCallback : ViewDragHelper.Callback() {
 
         private val slideOffset: Float
-            get() = when(lastKnownSwipeDirection) {
+            get() = when (lastKnownSwipeDirection) {
                 Direction.LEFT_TO_RIGHT -> (viewClosedBounds.left - viewClosedBounds.left).toFloat() / maxActionsWidth
                 Direction.RIGHT_TO_LEFT -> (viewClosedBounds.left - mainView.left).toFloat() / maxActionsWidth
                 else -> 0F
@@ -453,20 +455,22 @@ class SwipeToActionLayout @JvmOverloads constructor(
         }
 
         override fun clampViewPositionHorizontal(child: View, left: Int, dx: Int): Int {
-            return when(dragDirection) {
+            return when (dragDirection) {
                 DragDirections.FROM_RIGHT_TO_LEFT -> {
-                    val leftBound = viewClosedBounds.left - if (isFullSwipeActionAllowed) viewClosedBounds.width() else maxActionsWidth
+                    val leftBound =
+                        viewClosedBounds.left - if (isFullSwipeActionAllowed) viewClosedBounds.width() else maxActionsWidth
                     clamp(left, leftBound, viewClosedBounds.left)
                 }
                 DragDirections.FROM_LEFT_TO_RIGHT -> {
-                    val rightBound = viewClosedBounds.left + if (isFullSwipeActionAllowed) viewClosedBounds.width() else maxActionsWidth
-                    clamp(left, viewClosedBounds.left,  rightBound)
+                    val rightBound =
+                        viewClosedBounds.left + if (isFullSwipeActionAllowed) viewClosedBounds.width() else maxActionsWidth
+                    clamp(left, viewClosedBounds.left, rightBound)
                 }
                 else -> {
                     if (isFullSwipeActionAllowed) {
                         left
                     } else {
-                        clamp(left, viewClosedBounds.left - maxActionsWidth,  viewClosedBounds.left + maxActionsWidth)
+                        clamp(left, viewClosedBounds.left - maxActionsWidth, viewClosedBounds.left + maxActionsWidth)
                     }
                 }
             }
