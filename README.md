@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/st235/SwipeToActionLayout/master/images/showcase.gif" width="600" height="205">
+<img src="https://raw.githubusercontent.com/st235/SwipeToActionLayout/master/images/showcase.gif" width="719" height="117">
 
 # SwipeToActionLayout
 [![Download](https://api.bintray.com/packages/st235/maven/swipetoactionlayout/images/download.svg)](https://bintray.com/st235/maven/swipetoactionlayout/_latestVersion)
