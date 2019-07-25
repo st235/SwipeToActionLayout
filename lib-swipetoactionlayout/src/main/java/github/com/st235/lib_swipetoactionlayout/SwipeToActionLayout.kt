@@ -122,13 +122,6 @@ class SwipeToActionLayout @JvmOverloads constructor(
     private var dragHelper: ViewDragHelper
     private val gestureDetector: GestureDetectorCompat
 
-    private val openedEdgePosition: Int
-        get() = when (lastKnownSwipeDirection) {
-            Direction.LEFT_TO_RIGHT -> viewClosedBounds.left + maxActionsWidth
-            Direction.RIGHT_TO_LEFT -> viewClosedBounds.left - maxActionsWidth
-            else -> 0
-        }
-
     private val distToClosestEdge: Int
         get() = when (lastKnownSwipeDirection) {
             Direction.LEFT_TO_RIGHT -> {
@@ -254,19 +247,72 @@ class SwipeToActionLayout @JvmOverloads constructor(
         }
     }
 
-    fun open(animation: Boolean) {
+    fun open(animation: Boolean, direction: DragDirections) {
+        when (direction) {
+            DragDirections.FROM_LEFT_TO_RIGHT -> {
+                open(animation = animation, direction = Direction.LEFT_TO_RIGHT)
+            }
+            DragDirections.FROM_RIGHT_TO_LEFT -> {
+                open(animation = animation, direction = Direction.RIGHT_TO_LEFT)
+            }
+        }
+    }
+
+    private fun open(animation: Boolean, direction: Direction = lastKnownSwipeDirection) {
         doesOpenBeforeInit = true
         isAborted = false
 
         if (animation) {
             state = State.OPENING
-            dragHelper.smoothSlideViewTo(mainView, openedEdgePosition, viewClosedBounds.top)
+            dragHelper.smoothSlideViewTo(mainView, openedEdgePosition(direction), viewClosedBounds.top)
         } else {
             state = State.OPEN
             dragHelper.abort()
+
+            repositionActions(direction)
+
+            when (direction) {
+                Direction.LEFT_TO_RIGHT -> {
+                    mainView.layout(
+                        viewClosedBounds.left + maxActionsWidth,
+                        viewClosedBounds.top,
+                        viewClosedBounds.right + maxActionsWidth,
+                        viewClosedBounds.bottom
+                    )
+                }
+                Direction.RIGHT_TO_LEFT -> {
+                    mainView.layout(
+                        viewClosedBounds.left - maxActionsWidth,
+                        viewClosedBounds.top,
+                        viewClosedBounds.right - maxActionsWidth,
+                        viewClosedBounds.bottom
+                    )
+                }
+            }
         }
 
         ViewCompat.postInvalidateOnAnimation(this@SwipeToActionLayout)
+    }
+
+    private fun repositionActions(direction: Direction) {
+        when(direction) {
+            Direction.LEFT_TO_RIGHT -> {
+                var currentX = 0
+                for (v in leftItemsViews) {
+                    v.left = currentX
+                    v.right = v.left + oneActionWidth
+                    currentX += oneActionWidth
+                }
+            }
+            Direction.RIGHT_TO_LEFT -> {
+                var currentX = right
+                for (v in rightItemsViews.reversed()) {
+                    v.right = currentX
+                    v.left = v.right - oneActionWidth
+                    currentX -= oneActionWidth
+                }
+            }
+        }
     }
 
     fun close(animation: Boolean) {
@@ -295,6 +341,12 @@ class SwipeToActionLayout @JvmOverloads constructor(
         isAborted = true
         dragHelper.abort()
     }
+
+    private fun openedEdgePosition(direction: Direction): Int = when (direction) {
+            Direction.LEFT_TO_RIGHT -> viewClosedBounds.left + maxActionsWidth
+            Direction.RIGHT_TO_LEFT -> viewClosedBounds.left - maxActionsWidth
+            else -> 0
+        }
 
     private fun onStateChanged(newValue: State, oldValue: State) {
         isDragLocked = newValue == State.CLOSING
