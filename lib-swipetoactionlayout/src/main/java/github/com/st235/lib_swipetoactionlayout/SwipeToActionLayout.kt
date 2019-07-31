@@ -3,6 +3,7 @@ package github.com.st235.lib_swipetoactionlayout
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
+import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -260,19 +261,21 @@ class SwipeToActionLayout @JvmOverloads constructor(
         oneActionWidth = swipeActionViewFactory.lastKnownActionInfo.actionWidth
         maxActionsWidth = oneActionWidth * leftItems.size
 
-        hudViewController.onLayout(width,  height, leftItems, leftItemsViews, SwipeActionActionViewFactory.Gravity.LEFT)
+        hudViewController.onLayout(width, height, leftItems, leftItemsViews, SwipeActionActionViewFactory.Gravity.LEFT)
 
         if (state != State.CLOSE) {
-            mainView.layout(lastKnownMainViewLeftPosition, top, lastKnownMainViewLeftPosition + width, bottom)
+            mainView.layout(lastKnownMainViewLeftPosition, 0, lastKnownMainViewLeftPosition + width, height)
+            mainView.left = lastKnownMainViewLeftPosition
+            mainView.right = lastKnownMainViewLeftPosition + width
         } else {
-            mainView.layout(left, top, right, bottom)
+            mainView.layout(0, 0, width, height)
         }
 
         viewClosedBounds.set(
-            left,
-            top,
-            right,
-            bottom
+            0,
+            0,
+            width,
+            height
         )
     }
 

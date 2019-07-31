@@ -55,9 +55,16 @@ internal class HudViewController(
         views: List<View>,
         gravity: SwipeActionActionViewFactory.Gravity
     ) {
-        hudView.measure(
-            View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+        val lastActionInfo = swipeActionViewFactory.lastKnownActionInfo
+
+        leftActionView.measure(
+                View.MeasureSpec.makeMeasureSpec(lastActionInfo.actionWidth, View.MeasureSpec.EXACTLY),
+        View.MeasureSpec.makeMeasureSpec(lastActionInfo.actionHeight, View.MeasureSpec.EXACTLY)
+        )
+
+        rightActionView.measure(
+            View.MeasureSpec.makeMeasureSpec(lastActionInfo.actionWidth, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(lastActionInfo.actionHeight, View.MeasureSpec.EXACTLY)
         )
     }
 
@@ -68,7 +75,12 @@ internal class HudViewController(
         views: List<View>,
         gravity: SwipeActionActionViewFactory.Gravity
     ) {
+        val lastActionInfo = swipeActionViewFactory.lastKnownActionInfo
+
         hudView.layout(0, 0, width, height)
+
+        leftActionView.layout(0, 0, lastActionInfo.actionWidth, lastActionInfo.actionHeight)
+        rightActionView.layout(width - lastActionInfo.actionWidth, 0, width, lastActionInfo.actionHeight)
     }
 
     fun hideIfNeeded() {
