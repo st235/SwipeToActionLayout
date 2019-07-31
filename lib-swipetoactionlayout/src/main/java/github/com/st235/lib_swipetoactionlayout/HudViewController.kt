@@ -13,34 +13,29 @@ import android.widget.FrameLayout
 
 internal class HudViewController(
     context: Context,
-    private val swipeActionViewFactory: SwipeActionViewFactory
-) {
+    private val swipeActionViewFactory: SwipeActionActionViewFactory
+): ActionViewObserver {
 
     private val hudView: ViewGroup = FrameLayout(context)
 
     private lateinit var leftActionView: View
     private lateinit var rightActionView: View
 
-    fun attachToParent(parent: ViewGroup, firstAction: SwipeAction) {
+    fun attachToParent(parent: ViewGroup, action: SwipeAction) {
         val lp = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         hudView.setBackgroundColor(Color.TRANSPARENT)
         parent.addView(hudView, lp)
 
-
-        val desiredSize = Math.min(parent.width, parent.height)
-
         leftActionView = swipeActionViewFactory.create(
-            action = firstAction,
-            actionInfo = swipeActionViewFactory.lastKnownActionInfo,
-            gravity = SwipeActionViewFactory.Gravity.LEFT
+            action = action,
+            gravity = SwipeActionActionViewFactory.Gravity.LEFT
         )
 
         leftActionView.visibility = View.INVISIBLE
 
         rightActionView = swipeActionViewFactory.create(
-            action = firstAction,
-            actionInfo = swipeActionViewFactory.lastKnownActionInfo,
-            gravity = SwipeActionViewFactory.Gravity.RIGHT
+            action = action,
+            gravity = SwipeActionActionViewFactory.Gravity.RIGHT
         )
 
         rightActionView.visibility = View.INVISIBLE
@@ -51,6 +46,29 @@ internal class HudViewController(
 
     fun detachFromParent(parent: ViewGroup) {
         parent.removeView(hudView)
+    }
+
+    override fun onMeasure(
+        width: Int,
+        height: Int,
+        actions: List<SwipeAction>,
+        views: List<View>,
+        gravity: SwipeActionActionViewFactory.Gravity
+    ) {
+        hudView.measure(
+            View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+        )
+    }
+
+    override fun onLayout(
+        width: Int,
+        height: Int,
+        actions: List<SwipeAction>,
+        views: List<View>,
+        gravity: SwipeActionActionViewFactory.Gravity
+    ) {
+        hudView.layout(0, 0, width, height)
     }
 
     fun hideIfNeeded() {

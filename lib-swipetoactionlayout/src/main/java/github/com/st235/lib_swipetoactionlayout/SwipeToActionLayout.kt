@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import androidx.annotation.FloatRange
 import androidx.annotation.Px
@@ -75,7 +74,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
     private var dragDirection = DragDirections.BOTH
     private var isFullSwipeActionAllowed: Boolean = true
 
-    private val swipeActionViewFactory = SwipeActionViewFactory(this) { v, a ->
+    private val swipeActionViewFactory = SwipeActionActionViewFactory(this) { v, a ->
         close(true)
         onActionClickListener?.invoke(v, a)
     }
@@ -184,61 +183,97 @@ class SwipeToActionLayout @JvmOverloads constructor(
         mainView = getChildAt(0)
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        swipeActionViewFactory.onOwnerBoundsChanged(w, h)
-    }
-
     fun setItems(
         swipeActions: List<SwipeAction>,
         dragDirection: DragDirections = DragDirections.BOTH,
         isFullSwipeActionAllowed: Boolean = true
     ) {
-        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                viewTreeObserver.removeOnGlobalLayoutListener(this)
-                clearActions()
+        setItemsInternally(swipeActions, dragDirection, isFullSwipeActionAllowed)
+        requestLayout()
+    }
 
-                this@SwipeToActionLayout.dragDirection = dragDirection
-                this@SwipeToActionLayout.isFullSwipeActionAllowed = isFullSwipeActionAllowed
+    private fun setItemsInternally(
+        swipeActions: List<SwipeAction>,
+        dragDirection: DragDirections = DragDirections.BOTH,
+        isFullSwipeActionAllowed: Boolean = true
+    ) {
+        clearActions()
 
-                for (i in 0 until swipeActions.size) {
-                    leftItems.add(swipeActions[i])
-                    rightItems.add(swipeActions[swipeActions.size - i - 1])
-                }
+        this@SwipeToActionLayout.dragDirection = dragDirection
+        this@SwipeToActionLayout.isFullSwipeActionAllowed = isFullSwipeActionAllowed
 
-                if (dragDirection == DragDirections.BOTH || dragDirection == DragDirections.FROM_LEFT_TO_RIGHT) {
-                    leftItemsViews.addAll(
-                        swipeActionViewFactory.createLayout(
-                            leftItems,
-                            SwipeActionViewFactory.Gravity.LEFT
-                        )
-                    )
-                }
+        for (i in 0 until swipeActions.size) {
+            leftItems.add(swipeActions[i])
+            rightItems.add(swipeActions[swipeActions.size - i - 1])
+        }
 
-                if (dragDirection == DragDirections.BOTH || dragDirection == DragDirections.FROM_RIGHT_TO_LEFT) {
-                    rightItemsViews.addAll(
-                        swipeActionViewFactory.createLayout(
-                            rightItems,
-                            SwipeActionViewFactory.Gravity.RIGHT
-                        )
-                    )
-                }
-
-                hudViewController.attachToParent(this@SwipeToActionLayout, swipeActions.first())
-
-                bringChildToFront(mainView)
-
-                oneActionWidth = swipeActionViewFactory.lastKnownActionInfo.actionWidth
-                maxActionsWidth = oneActionWidth * swipeActions.size
-                viewClosedBounds.set(
-                    mainView.left,
-                    mainView.top,
-                    mainView.right,
-                    mainView.bottom
+        if (dragDirection == DragDirections.BOTH || dragDirection == DragDirections.FROM_LEFT_TO_RIGHT) {
+            leftItemsViews.addAll(
+                swipeActionViewFactory.createLayout(
+                    leftItems,
+                    SwipeActionActionViewFactory.Gravity.LEFT
                 )
-            }
-        })
+            )
+        }
+
+        if (dragDirection == DragDirections.BOTH || dragDirection == DragDirections.FROM_RIGHT_TO_LEFT) {
+            rightItemsViews.addAll(
+                swipeActionViewFactory.createLayout(
+                    rightItems,
+                    SwipeActionActionViewFactory.Gravity.RIGHT
+                )
+            )
+        }
+
+        hudViewController.attachToParent(this@SwipeToActionLayout, swipeActions.first())
+
+        bringChildToFront(mainView)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        swipeActionViewFactory.onInit(width = measuredWidth, height = measuredHeight, actions = leftItems)
+
+        if (dragDirection == DragDirections.BOTH || dragDirection == DragDirections.FROM_LEFT_TO_RIGHT) {
+            swipeActionViewFactory.onMeasure(measuredWidth, measuredHeight, leftItems, leftItemsViews, SwipeActionActionViewFactory.Gravity.LEFT)
+        }
+
+        if (dragDirection == DragDirections.BOTH || dragDirection == DragDirections.FROM_RIGHT_TO_LEFT) {
+            swipeActionViewFactory.onMeasure(measuredWidth, measuredHeight, rightItems, rightItemsViews, SwipeActionActionViewFactory.Gravity.RIGHT)
+        }
+
+        hudViewController.onMeasure(measuredWidth, measuredHeight, leftItems, leftItemsViews, SwipeActionActionViewFactory.Gravity.LEFT)
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        val width = right - left
+        val height = bottom - top
+
+        if (dragDirection == DragDirections.BOTH || dragDirection == DragDirections.FROM_LEFT_TO_RIGHT) {
+            swipeActionViewFactory.onLayout(width, height, leftItems, leftItemsViews, SwipeActionActionViewFactory.Gravity.LEFT)
+        }
+
+        if (dragDirection == DragDirections.BOTH || dragDirection == DragDirections.FROM_RIGHT_TO_LEFT) {
+            swipeActionViewFactory.onLayout(width, height, rightItems, rightItemsViews, SwipeActionActionViewFactory.Gravity.RIGHT)
+        }
+
+        oneActionWidth = swipeActionViewFactory.lastKnownActionInfo.actionWidth
+        maxActionsWidth = oneActionWidth * leftItems.size
+
+        hudViewController.onLayout(width,  height, leftItems, leftItemsViews, SwipeActionActionViewFactory.Gravity.LEFT)
+
+        if (state != State.CLOSE) {
+            mainView.layout(lastKnownMainViewLeftPosition, top, lastKnownMainViewLeftPosition + width, bottom)
+        } else {
+            mainView.layout(left, top, right, bottom)
+        }
+
+        viewClosedBounds.set(
+            left,
+            top,
+            right,
+            bottom
+        )
     }
 
     override fun computeScroll() {
@@ -320,6 +355,9 @@ class SwipeToActionLayout @JvmOverloads constructor(
         isAborted = false
 
         if (animation) {
+            if (mainView.left == viewClosedBounds.left) {
+                return
+            }
             state = State.CLOSING
             dragHelper.smoothSlideViewTo(mainView, viewClosedBounds.left, viewClosedBounds.top)
         } else {
@@ -384,6 +422,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
     private fun clearActions() {
         for (v in leftItemsViews) removeView(v)
         for (v in rightItemsViews) removeView(v)
+
         hudViewController.detachFromParent(this)
 
         leftItems.clear()
@@ -391,6 +430,11 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
         leftItemsViews.clear()
         rightItemsViews.clear()
+
+        if (mainView.left > 0 || mainView.right < viewClosedBounds.width()) {
+            mainView.left = 0
+            mainView.right = viewClosedBounds.width()
+        }
     }
 
     private fun couldBecomeClick(ev: MotionEvent): Boolean {
@@ -491,8 +535,8 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
         private val slideOffset: Float
             get() = when (lastKnownSwipeDirection) {
-                Direction.LEFT_TO_RIGHT -> (viewClosedBounds.left - viewClosedBounds.left).toFloat() / maxActionsWidth
-                Direction.RIGHT_TO_LEFT -> (viewClosedBounds.left - mainView.left).toFloat() / maxActionsWidth
+                Direction.LEFT_TO_RIGHT -> (mainView.left - viewClosedBounds.left).toFloat() / maxActionsWidth
+                Direction.RIGHT_TO_LEFT -> (viewClosedBounds.right - mainView.left).toFloat() / maxActionsWidth
                 else -> 0F
             }
 
@@ -543,7 +587,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
                         onLongActionClickListener?.invoke(leftItemsViews.first(), leftItems.first())
                     close(true)
                 }
-                Direction.RIGHT_TO_LEFT -> if (releasedChild.right in (rightMax + 1)..rightThreshold) {
+                Direction.RIGHT_TO_LEFT -> if (releasedChild.right in rightMax until rightThreshold) {
                     open(true)
                 } else {
                     if (releasedChild.right < rightMax) {
@@ -587,12 +631,13 @@ class SwipeToActionLayout @JvmOverloads constructor(
             val isMoved = mainView.left != lastKnownMainViewLeftPosition
 
             if (onSwipeListener != null && isMoved) {
-                if (mainView.left == viewClosedBounds.left && mainView.top == viewClosedBounds.top) {
+                if (mainView.left == viewClosedBounds.left) {
                     onSwipeListener?.onClosed(this@SwipeToActionLayout)
-                    //TODO(st235): fix it!!!
-//                } else if (mainView.left == mRectMainOpen.left && mainView.top == mRectMainOpen.top) {
-//                    onSwipeListener?.onOpened(this@SwipeToActionLayout)
-                } else {
+                } else if (mainView.left == viewClosedBounds.left + this@SwipeToActionLayout.maxActionsWidth
+                        || mainView.right == viewClosedBounds.right - this@SwipeToActionLayout.maxActionsWidth
+                ) {
+                    onSwipeListener?.onOpened(this@SwipeToActionLayout)
+                } else if (state != State.CLOSING) {
                     onSwipeListener?.onSlide(this@SwipeToActionLayout, slideOffset)
                 }
             }

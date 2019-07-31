@@ -17,6 +17,15 @@ internal class ActionParamsResolver {
         val shouldTruncateText: Boolean = false
     )
 
+    companion object {
+        val EMPTY_INFO = ActionInfo(
+            textSize = 14F,
+            actionHeight = 0,
+            actionWidth = 0,
+            maxLines = 1
+        )
+    }
+
     private val textPaint = TextPaint(TextPaint.ANTI_ALIAS_FLAG)
 
     fun obtainActionInfoFor(
