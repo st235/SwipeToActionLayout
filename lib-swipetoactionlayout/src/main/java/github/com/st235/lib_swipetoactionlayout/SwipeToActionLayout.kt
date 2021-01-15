@@ -1,19 +1,16 @@
 package github.com.st235.lib_swipetoactionlayout
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
 import android.view.*
-import androidx.core.animation.addListener
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper
 import github.com.st235.lib_swipetoactionlayout.behaviour.BehaviourDelegate
 import github.com.st235.lib_swipetoactionlayout.behaviour.BehaviourDelegatesFactory
 import github.com.st235.lib_swipetoactionlayout.behaviour.NoOpBehaviourDelegate
+import github.com.st235.lib_swipetoactionlayout.utils.isLtr
 import github.com.st235.lib_swipetoactionlayout.utils.max
 import github.com.st235.lib_swipetoactionlayout.utils.min
-import github.com.st235.lib_swipetoactionlayout.utils.show
-import java.lang.IllegalStateException
 
 
 internal typealias SwipeToActionLayoutLayoutParams = ViewGroup.MarginLayoutParams
@@ -22,6 +19,63 @@ class SwipeToActionLayout @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr) {
 
+    enum class MenuGravity {
+
+        LEFT {
+            override fun getViewGravity(): Int {
+                return Gravity.RIGHT
+            }
+        },
+        RIGHT {
+            override fun getViewGravity(): Int {
+                return Gravity.LEFT
+            }
+        },
+        START {
+            override fun getViewGravity(): Int {
+                return if (isLtr()) {
+                    Gravity.RIGHT
+                } else {
+                    Gravity.LEFT
+                }
+            }
+        },
+        END {
+            override fun getViewGravity(): Int {
+                return if (isLtr()) {
+                    Gravity.LEFT
+                } else {
+                    Gravity.RIGHT
+                }
+            }
+        };
+
+        internal abstract fun getViewGravity(): Int
+
+    }
+
+    var actions: List<SwipeAction> = mutableListOf()
+        set(value) {
+            if (value.isEmpty()) {
+                throw IllegalArgumentException("Items list cannot be null")
+            }
+
+            field = listOf(*value.toTypedArray())
+            reloadActions()
+        }
+
+    var gravity: MenuGravity = MenuGravity.RIGHT
+    set(value) {
+        field = value
+        reloadActions()
+    }
+
+    var isFullActionSupported: Boolean = false
+    set(value) {
+        field = value
+        reloadActions()
+    }
+
     private val actionFactory = ActionFactory(context)
     private val behaviourDelegateFactory = BehaviourDelegatesFactory(context)
 
@@ -29,24 +83,6 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
     private var delegate: BehaviourDelegate = NoOpBehaviourDelegate()
     private val viewDragHelper = ViewDragHelper.create(this, ViewDragHelperCallback())
-
-    fun setItems(items: List<SwipeAction>) {
-        if (items.isEmpty()) {
-            throw IllegalArgumentException("Items list cannot be null")
-        }
-
-        removeAllActions()
-
-        delegate = behaviourDelegateFactory.create(items.size)
-
-        for ((index, item) in items.withIndex()) {
-            val isLastItem = (index == items.lastIndex)
-            val associatedView = actionFactory.createAction(item, isLastItem)
-            addView(associatedView)
-        }
-
-        requestLayout()
-    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         var contentWidth = 0
@@ -75,6 +111,23 @@ class SwipeToActionLayout @JvmOverloads constructor(
         }
 
         actionSize = max(actionWidth, contentHeight /* action should be the same size as content */)
+
+        for (i in 0 until childCount) {
+            val childView = getChildAt(i)
+
+            if (childView.visibility == View.GONE) {
+                continue
+            }
+
+            if (!ActionFactory.isAction(childView)) {
+                continue
+            }
+
+            childView.measure(
+                MeasureSpec.makeMeasureSpec(actionSize, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(actionSize, MeasureSpec.EXACTLY)
+            )
+        }
 
         setMeasuredDimension(
             desiredSize(widthMeasureSpec, contentWidth),
@@ -152,6 +205,22 @@ class SwipeToActionLayout @JvmOverloads constructor(
         if (viewDragHelper.continueSettling(true)) {
             ViewCompat.postInvalidateOnAnimation(this)
         }
+    }
+
+    private fun reloadActions() {
+        val items = actions
+
+        removeAllActions()
+
+        delegate = behaviourDelegateFactory.create(items.size, gravity, isFullActionSupported)
+
+        for ((index, item) in items.withIndex()) {
+            val isLastItem = (index == items.lastIndex)
+            val associatedView = actionFactory.createAction(item, isLastItem, gravity.getViewGravity())
+            addView(associatedView)
+        }
+
+        requestLayout()
     }
 
     private fun removeAllActions() {

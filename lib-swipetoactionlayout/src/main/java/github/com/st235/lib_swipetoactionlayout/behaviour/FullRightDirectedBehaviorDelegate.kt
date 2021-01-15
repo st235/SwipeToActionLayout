@@ -6,13 +6,11 @@ import android.view.View
 import androidx.core.animation.addListener
 import github.com.st235.lib_swipetoactionlayout.ActionFactory
 import github.com.st235.lib_swipetoactionlayout.utils.clamp
-import github.com.st235.lib_swipetoactionlayout.utils.max
-import github.com.st235.lib_swipetoactionlayout.utils.min
 
-internal class FullLeftDirectedBehaviorDelegate(
+internal class FullRightDirectedBehaviorDelegate(
     private val actionCount: Int,
     private val context: Context
-): LeftDirectedBehaviourDelegate(actionCount, context) {
+): RightDirectedBehaviourDelegate(actionCount, context) {
 
     enum class States {
         CLOSED,
@@ -22,8 +20,7 @@ internal class FullLeftDirectedBehaviorDelegate(
     }
 
     private var state = States.CLOSED
-    private var originalRight: Float = 0F
-    private var lastRightPosition: Float = 0F
+    private var originalLeft = 0
 
     private var animation: ValueAnimator? = null
 
@@ -33,25 +30,24 @@ internal class FullLeftDirectedBehaviorDelegate(
         } else {
             view.translationX = 0F
             val parentWidth = r - l
-            view.layout(l - parentWidth, 0, l, actionSize)
+            view.layout(r, 0, r + parentWidth, actionSize)
         }
     }
 
     override fun clampViewPosition(parentView: View, view: View, left: Int, actionSize: Int): Int {
-        return clamp(left, 0, parentView.measuredWidth)
+        return clamp(left, -parentView.measuredWidth, 0)
     }
 
     override fun translateAction(mainView: View, actionView: View, actionSize: Int, dx: Int, index: Int) {
         val distance = actionSize * actionCount
-        val distanceFill = clamp(mainView.left / distance.toFloat(), 0F, 1F)
+        val distanceFill = clamp(mainView.left / -distance.toFloat(), 0F, 1F)
 
-        if (!ActionFactory.isLast(actionView)) {
-            actionView.translationX = clamp(
-                (distanceFill * distance * ((actionCount - index + 1).toFloat() / actionCount)),
-                0F,
-                distance * (actionCount - index + 1).toFloat() / actionCount
+        actionView.translationX =
+            clamp(
+                (distanceFill * -distance * ((actionCount - index + 1).toFloat() / actionCount)),
+                -distance * (actionCount - index + 1).toFloat() / actionCount,
+                0F
             )
-        }
 
         if (ActionFactory.isLast(actionView)) {
             if (isFullyOpened(mainView, actionSize) && (state != States.IS_OPENING && state != States.OPENED)) {
@@ -59,17 +55,16 @@ internal class FullLeftDirectedBehaviorDelegate(
 
                 state = States.IS_OPENING
                 animation = ValueAnimator.ofFloat(0F, 1F)
-                originalRight = actionView.translationX
+                originalLeft = actionView.left
 
                 animation?.addUpdateListener {
-                    val progress = (it.animatedValue as Float)
-                    val distance = mainView.left - actionView.translationX
-                    actionView.translationX += (distance * progress - actionView.right).toInt()
+                    val percent = (it.animatedValue as Float)
+                    val distance = (actionView.left - mainView.right) + actionView.translationX
+                    actionView.left = actionView.left - (distance * percent).toInt()
                 }
 
                 animation?.addListener(onEnd = {
                     this.animation = null
-                    lastRightPosition = actionView.translationX
                     state = States.OPENED
                 }, onCancel = {
                     this.animation = null
@@ -78,20 +73,17 @@ internal class FullLeftDirectedBehaviorDelegate(
 
                 animation?.start()
             } else if (isFullyOpened(mainView, actionSize) && (state == States.OPENED)) {
-                actionView.translationX = mainView.left.toFloat()
-                lastRightPosition = actionView.translationX
+                actionView.left = (mainView.right - actionView.translationX).toInt()
             } else if (!isFullyOpened(mainView, actionSize) && (state != States.IS_CLOSING && state != States.CLOSED)) {
                 animation?.cancel()
 
                 state = States.IS_CLOSING
-                animation = ValueAnimator.ofFloat(1F, 0F)
+                animation = ValueAnimator.ofFloat(0F, 1F)
 
                 animation?.addUpdateListener {
-                    val progress = (it.animatedValue as Float)
-                    val finalPoint = min(originalRight, actionView.translationX)
-                    val distance = max(lastRightPosition - finalPoint, 0F)
-                    actionView.translationX = originalRight + progress * distance
-                    lastRightPosition = actionView.translationX
+                    val percent = (it.animatedValue as Float)
+                    val distance = (originalLeft - actionView.left)
+                    actionView.left = (actionView.left + distance * percent).toInt()
                 }
 
                 animation?.addListener(onEnd = {
@@ -99,23 +91,11 @@ internal class FullLeftDirectedBehaviorDelegate(
                     state = States.CLOSED
                 }, onCancel = {
                     this.animation = null
-                    actionView.translationX = originalRight
+                    actionView.left = originalLeft
                     state = States.CLOSED
                 })
 
                 animation?.start()
-            } else {
-                val finalOrigin = clamp(
-                    (distanceFill * distance * ((actionCount - index + 1).toFloat() / actionCount)),
-                    0F,
-                    distance * (actionCount - index + 1).toFloat() / actionCount
-                )
-
-                if (state == States.IS_CLOSING) {
-                    originalRight = finalOrigin
-                } else {
-                    actionView.translationX = finalOrigin
-                }
             }
         }
     }
@@ -124,16 +104,16 @@ internal class FullLeftDirectedBehaviorDelegate(
         // position is the left side of a view
         // as we can move view only to left position belongs to [-translateDistance, 0]
         val translateDistance = actionSize * actionCount
-        return position > (translateDistance / 2) && position <= translateDistance
+        return position < (-translateDistance / 2) && position >= -translateDistance
     }
 
     override fun getFinalLeftPosition(view: View, velocity: Float, actionSize: Int): Int {
         val translateDistance = actionSize * actionCount
 
         return if (isFullyOpened(view, actionSize)) {
-            view.measuredWidth
+            -view.measuredWidth
         } else if (isOpened(view.left, actionSize)) {
-            translateDistance
+            -translateDistance
         } else {
             0
         }
@@ -144,7 +124,7 @@ internal class FullLeftDirectedBehaviorDelegate(
         // as we can move view only to left position belongs to [-translateDistance, 0]
         val translateDistance = actionSize * actionCount
         val position = view.left
-        return position > translateDistance
+        return position < -translateDistance
     }
 
 

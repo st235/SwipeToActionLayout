@@ -5,9 +5,7 @@ import android.graphics.PorterDuff
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import github.com.st235.lib_swipetoactionlayout.utils.show
 
 internal class ActionFactory(
@@ -34,13 +32,10 @@ internal class ActionFactory(
 
     }
 
-    fun createAction(item: SwipeAction, isLast: Boolean): View {
+    fun createAction(item: SwipeAction, isLast: Boolean, gravity: Int): View {
         val container = LinearLayout(context)
         container.id = item.actionId
         container.orientation = LinearLayout.VERTICAL
-        container.background = item.background
-
-        markAsAction(container, isLast)
 
         val iconView = ImageView(context)
         val titleView = TextView(context)
@@ -67,7 +62,24 @@ internal class ActionFactory(
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
-        return container
+
+        val finalContainer = if (isLast) wrap(container, gravity) else container
+        finalContainer.background = item.background
+        markAsAction(finalContainer, isLast)
+
+        return finalContainer
+    }
+
+    private fun wrap(view: ViewGroup, gravity: Int): ViewGroup {
+        val frameLayout = FrameLayout(context)
+
+        frameLayout.addView(view, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            gravity
+        ))
+
+        return frameLayout
     }
 
 }
