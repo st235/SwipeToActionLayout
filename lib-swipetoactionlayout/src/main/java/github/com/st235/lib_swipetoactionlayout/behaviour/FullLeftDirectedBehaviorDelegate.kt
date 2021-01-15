@@ -5,6 +5,7 @@ import android.content.Context
 import android.view.View
 import androidx.core.animation.addListener
 import github.com.st235.lib_swipetoactionlayout.ActionFactory
+import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
 import github.com.st235.lib_swipetoactionlayout.utils.clamp
 import github.com.st235.lib_swipetoactionlayout.utils.max
 import github.com.st235.lib_swipetoactionlayout.utils.min
@@ -147,5 +148,25 @@ internal class FullLeftDirectedBehaviorDelegate(
         return position > translateDistance
     }
 
+    override fun getStateForPosition(
+        view: View,
+        actionSize: Int
+    ): QuickActionsStates {
+        return if (isFullyOpened(view, actionSize)) {
+            QuickActionsStates.FULL_OPENED
+        } else if (isOpened(view.left, actionSize)) {
+            QuickActionsStates.OPENED
+        } else {
+            QuickActionsStates.CLOSED
+        }
+    }
+
+    override fun gePositionForState(view: View, actionSize: Int, states: QuickActionsStates): Int {
+        return when(states) {
+            QuickActionsStates.FULL_OPENED -> view.measuredWidth
+            QuickActionsStates.OPENED -> actionSize * actionCount
+            QuickActionsStates.CLOSED -> 0
+        }
+    }
 
 }

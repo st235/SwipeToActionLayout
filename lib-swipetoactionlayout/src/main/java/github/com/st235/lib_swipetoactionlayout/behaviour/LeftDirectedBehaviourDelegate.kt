@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Point
 import android.util.Log
 import android.view.View
+import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
 import github.com.st235.lib_swipetoactionlayout.utils.clamp
 
 internal open class LeftDirectedBehaviourDelegate(
@@ -42,4 +43,22 @@ internal open class LeftDirectedBehaviourDelegate(
         }
     }
 
+    override fun getStateForPosition(
+        view: View,
+        actionSize: Int
+    ): QuickActionsStates {
+        return if (isOpened(view.left, actionSize)) {
+            QuickActionsStates.OPENED
+        } else {
+            QuickActionsStates.CLOSED
+        }
+    }
+
+    override fun gePositionForState(view: View, actionSize: Int, states: QuickActionsStates): Int {
+        return when(states) {
+            QuickActionsStates.FULL_OPENED -> throw IllegalArgumentException("Unsupported state")
+            QuickActionsStates.OPENED -> actionSize * actionCount
+            QuickActionsStates.CLOSED -> 0
+        }
+    }
 }

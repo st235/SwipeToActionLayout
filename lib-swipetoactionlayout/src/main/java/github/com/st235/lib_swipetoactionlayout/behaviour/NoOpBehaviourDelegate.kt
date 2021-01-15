@@ -1,6 +1,7 @@
 package github.com.st235.lib_swipetoactionlayout.behaviour
 
 import android.view.View
+import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
 
 internal class NoOpBehaviourDelegate: BehaviourDelegate {
 
@@ -23,6 +24,19 @@ internal class NoOpBehaviourDelegate: BehaviourDelegate {
     }
 
     override fun getFinalLeftPosition(view: View, velocity: Float, actionSize: Int): Int {
+        // empty on purpose
+        return 0
+    }
+
+    override fun getStateForPosition(
+        view: View,
+        actionSize: Int
+    ): QuickActionsStates {
+        // empty on purpose
+        return QuickActionsStates.CLOSED
+    }
+
+    override fun gePositionForState(view: View, actionSize: Int, states: QuickActionsStates): Int {
         // empty on purpose
         return 0
     }

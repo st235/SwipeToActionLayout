@@ -5,6 +5,7 @@ import android.content.Context
 import android.view.View
 import androidx.core.animation.addListener
 import github.com.st235.lib_swipetoactionlayout.ActionFactory
+import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
 import github.com.st235.lib_swipetoactionlayout.utils.clamp
 
 internal class FullRightDirectedBehaviorDelegate(
@@ -110,12 +111,16 @@ internal class FullRightDirectedBehaviorDelegate(
     override fun getFinalLeftPosition(view: View, velocity: Float, actionSize: Int): Int {
         val translateDistance = actionSize * actionCount
 
-        return if (isFullyOpened(view, actionSize)) {
-            -view.measuredWidth
-        } else if (isOpened(view.left, actionSize)) {
-            -translateDistance
-        } else {
-            0
+        return when {
+            isFullyOpened(view, actionSize) -> {
+                -view.measuredWidth
+            }
+            isOpened(view.left, actionSize) -> {
+                -translateDistance
+            }
+            else -> {
+                0
+            }
         }
     }
 
@@ -127,5 +132,29 @@ internal class FullRightDirectedBehaviorDelegate(
         return position < -translateDistance
     }
 
+    override fun getStateForPosition(
+        view: View,
+        actionSize: Int
+    ): QuickActionsStates {
+        return when {
+            isFullyOpened(view, actionSize) -> {
+                QuickActionsStates.FULL_OPENED
+            }
+            isOpened(view.left, actionSize) -> {
+                QuickActionsStates.OPENED
+            }
+            else -> {
+                QuickActionsStates.CLOSED
+            }
+        }
+    }
+
+    override fun gePositionForState(view: View, actionSize: Int, states: QuickActionsStates): Int {
+        return when(states) {
+            QuickActionsStates.FULL_OPENED -> -view.measuredWidth
+            QuickActionsStates.OPENED -> -(actionSize * actionCount)
+            QuickActionsStates.CLOSED -> 0
+        }
+    }
 
 }

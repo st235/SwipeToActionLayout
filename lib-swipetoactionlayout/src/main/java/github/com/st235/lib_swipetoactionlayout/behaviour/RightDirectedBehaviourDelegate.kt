@@ -3,6 +3,7 @@ package github.com.st235.lib_swipetoactionlayout.behaviour
 import android.content.Context
 import android.graphics.Point
 import android.view.View
+import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
 import github.com.st235.lib_swipetoactionlayout.utils.clamp
 
 internal open class RightDirectedBehaviourDelegate(
@@ -40,4 +41,24 @@ internal open class RightDirectedBehaviourDelegate(
             0
         }
     }
+
+    override fun getStateForPosition(
+        view: View,
+        actionSize: Int
+    ): QuickActionsStates {
+        return if (isOpened(view.left, actionSize)) {
+            QuickActionsStates.OPENED
+        } else {
+            QuickActionsStates.CLOSED
+        }
+    }
+
+    override fun gePositionForState(view: View, actionSize: Int, states: QuickActionsStates): Int {
+        return when(states) {
+            QuickActionsStates.FULL_OPENED -> throw IllegalArgumentException("Unsupported state")
+            QuickActionsStates.OPENED -> -(actionSize * actionCount)
+            QuickActionsStates.CLOSED -> 0
+        }
+    }
+
 }

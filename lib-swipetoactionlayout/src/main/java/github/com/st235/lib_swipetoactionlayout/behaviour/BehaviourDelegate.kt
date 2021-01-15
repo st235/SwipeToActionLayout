@@ -2,6 +2,7 @@ package github.com.st235.lib_swipetoactionlayout.behaviour
 
 import android.graphics.Point
 import android.view.View
+import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
 
 internal interface BehaviourDelegate {
 
@@ -14,5 +15,9 @@ internal interface BehaviourDelegate {
     fun isOpened(position: Int, actionSize: Int): Boolean
 
     fun getFinalLeftPosition(view: View, velocity: Float, actionSize: Int): Int
+
+    fun getStateForPosition(view: View, actionSize: Int): QuickActionsStates
+
+    fun gePositionForState(view: View, actionSize: Int, states: QuickActionsStates): Int
 
 }

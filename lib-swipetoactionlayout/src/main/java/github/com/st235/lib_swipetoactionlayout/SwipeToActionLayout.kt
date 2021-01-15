@@ -8,6 +8,7 @@ import androidx.customview.widget.ViewDragHelper
 import github.com.st235.lib_swipetoactionlayout.behaviour.BehaviourDelegate
 import github.com.st235.lib_swipetoactionlayout.behaviour.BehaviourDelegatesFactory
 import github.com.st235.lib_swipetoactionlayout.behaviour.NoOpBehaviourDelegate
+import github.com.st235.lib_swipetoactionlayout.events.QuickActionsMenuStateProcessor
 import github.com.st235.lib_swipetoactionlayout.utils.isLtr
 import github.com.st235.lib_swipetoactionlayout.utils.max
 import github.com.st235.lib_swipetoactionlayout.utils.min
@@ -65,24 +66,77 @@ class SwipeToActionLayout @JvmOverloads constructor(
         }
 
     var gravity: MenuGravity = MenuGravity.RIGHT
-    set(value) {
-        field = value
-        reloadActions()
-    }
+        set(value) {
+            field = value
+            reloadActions()
+        }
 
     var isFullActionSupported: Boolean = false
-    set(value) {
-        field = value
-        reloadActions()
-    }
+        set(value) {
+            field = value
+            reloadActions()
+        }
+
+    var shouldVibrateOnQuickAction: Boolean = false
 
     private val actionFactory = ActionFactory(context)
     private val behaviourDelegateFactory = BehaviourDelegatesFactory(context)
+
+    private var inProgressStateProcessor = QuickActionsMenuStateProcessor()
 
     private var actionSize = 0
 
     private var delegate: BehaviourDelegate = NoOpBehaviourDelegate()
     private val viewDragHelper = ViewDragHelper.create(this, ViewDragHelperCallback())
+
+    var menuListener: MenuListener? = null
+
+    init {
+        inProgressStateProcessor.onReleaseStateChanged = { state ->
+            when (state) {
+                QuickActionsStates.FULL_OPENED -> {
+                    menuListener?.onFullyOpened(this)
+                }
+                QuickActionsStates.OPENED -> {
+                    menuListener?.onOpened(this)
+                }
+                QuickActionsStates.CLOSED -> {
+                    menuListener?.onClosed(this)
+                }
+            }
+
+        }
+
+        inProgressStateProcessor.onProgressiveStateChanged = { state ->
+            when (state) {
+                QuickActionsStates.FULL_OPENED -> {
+                    if (shouldVibrateOnQuickAction) {
+                        performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                    }
+                }
+                else -> {
+                }
+            }
+        }
+    }
+
+    fun close() {
+        transitionToState(QuickActionsStates.CLOSED)
+    }
+
+    fun open() {
+        transitionToState(QuickActionsStates.OPENED)
+    }
+
+    fun fullyOpen() {
+        transitionToState(QuickActionsStates.FULL_OPENED)
+    }
+
+    private fun transitionToState(state: QuickActionsStates) {
+        val position = delegate.gePositionForState(this, actionSize, state)
+        viewDragHelper.smoothSlideViewTo(findContentView(), position, 0)
+        invalidate()
+    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         var contentWidth = 0
@@ -156,7 +210,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
         val mode = MeasureSpec.getMode(measureSpec)
         val availableSize = MeasureSpec.getSize(measureSpec)
 
-        return when(mode) {
+        return when (mode) {
             MeasureSpec.EXACTLY -> availableSize
             MeasureSpec.AT_MOST -> min(availableSize, size)
             MeasureSpec.UNSPECIFIED -> size
@@ -207,6 +261,18 @@ class SwipeToActionLayout @JvmOverloads constructor(
         }
     }
 
+    private fun findContentView(): View {
+        for (i in 0 until childCount) {
+            val child = getChildAt(i)
+
+            if (!ActionFactory.isAction(child)) {
+                return child
+            }
+        }
+
+        throw IllegalStateException()
+    }
+
     private fun reloadActions() {
         val items = actions
 
@@ -216,7 +282,15 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
         for ((index, item) in items.withIndex()) {
             val isLastItem = (index == items.lastIndex)
-            val associatedView = actionFactory.createAction(item, isLastItem, gravity.getViewGravity())
+            val associatedView =
+                actionFactory.createAction(item, isLastItem, gravity.getViewGravity())
+
+            associatedView.isClickable = true
+            associatedView.isFocusable = true
+            associatedView.setOnClickListener {
+                menuListener?.onActionClicked(it, action = item)
+            }
+
             addView(associatedView)
         }
 
@@ -239,7 +313,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
         }
     }
 
-    private inner class ViewDragHelperCallback: ViewDragHelper.Callback() {
+    private inner class ViewDragHelperCallback : ViewDragHelper.Callback() {
 
         override fun tryCaptureView(child: View, pointerId: Int): Boolean {
             return !ActionFactory.isAction(child)
@@ -265,11 +339,19 @@ class SwipeToActionLayout @JvmOverloads constructor(
                     actionOrder++
                 }
             }
+
+            inProgressStateProcessor.setState(
+                delegate.getStateForPosition(
+                    changedView,
+                    actionSize
+                )
+            )
         }
 
         override fun onViewReleased(releasedChild: View, xvel: Float, yvel: Float) {
             val finalLeftPosition = delegate.getFinalLeftPosition(releasedChild, xvel, actionSize)
             viewDragHelper.settleCapturedViewAt(finalLeftPosition, 0)
+            inProgressStateProcessor.release()
             invalidate()
         }
     }

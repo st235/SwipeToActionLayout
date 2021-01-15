@@ -3,7 +3,10 @@ package github.com.st235.swipetoactionlayout
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import github.com.st235.lib_swipetoactionlayout.MenuListener
 import github.com.st235.lib_swipetoactionlayout.SwipeAction
 import github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
 
@@ -16,8 +19,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         deprecatedSwipeToActionLayout = findViewById(R.id.swipeToActionLayout)
+        deprecatedSwipeToActionLayout.gravity = SwipeToActionLayout.MenuGravity.END
         deprecatedSwipeToActionLayout.isFullActionSupported = true
-//        deprecatedSwipeToActionLayout.thresholdToOpenView = 0.0F
+        deprecatedSwipeToActionLayout.shouldVibrateOnQuickAction = true
+        deprecatedSwipeToActionLayout.menuListener = MenuListener()
 
         deprecatedSwipeToActionLayout.actions =
                 listOf(
@@ -25,5 +30,27 @@ class MainActivity : AppCompatActivity() {
                         SwipeAction(1, ColorDrawable(0xFFFFF7A4.toInt()), R.drawable.baseline_email_24, getString(R.string.action_email), Color.BLACK, Color.BLACK),
                         SwipeAction(3, ColorDrawable(0xFFC0E7F6.toInt()), R.drawable.baseline_duo_24, getString(R.string.action_duo), Color.BLACK, Color.BLACK)
                 )
+
+
+    }
+
+    private inner class MenuListener: github.com.st235.lib_swipetoactionlayout.MenuListener {
+
+        override fun onClosed(view: View) {
+        }
+
+        override fun onOpened(view: View) {
+        }
+
+        override fun onFullyOpened(view: View) {
+            deprecatedSwipeToActionLayout.postDelayed({
+                deprecatedSwipeToActionLayout.close()
+            }, 1_000)
+        }
+
+        override fun onActionClicked(view: View, action: SwipeAction) {
+            Toast.makeText(this@MainActivity, "On clicked on: ${action.text}", Toast.LENGTH_SHORT).show()
+            deprecatedSwipeToActionLayout.close()
+        }
     }
 }
