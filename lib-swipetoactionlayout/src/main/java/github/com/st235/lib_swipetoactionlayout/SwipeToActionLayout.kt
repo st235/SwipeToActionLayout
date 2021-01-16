@@ -2,6 +2,7 @@ package github.com.st235.lib_swipetoactionlayout
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.view.*
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper
@@ -342,6 +343,14 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
         override fun tryCaptureView(child: View, pointerId: Int): Boolean {
             return !ActionFactory.isAction(child)
+        }
+
+        override fun getViewHorizontalDragRange(child: View): Int {
+            if (ActionFactory.isLast(child)) {
+                return 0
+            }
+
+            return child.measuredWidth
         }
 
         override fun clampViewPositionHorizontal(child: View, left: Int, dx: Int): Int {

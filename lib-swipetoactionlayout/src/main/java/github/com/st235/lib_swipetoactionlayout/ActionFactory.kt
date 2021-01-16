@@ -28,7 +28,7 @@ internal class ActionFactory(
 
         @JvmStatic
         fun isLast(v: View): Boolean {
-            return (v.tag as Payload).isLast
+            return (v.tag as? Payload)?.isLast == true
         }
 
     }

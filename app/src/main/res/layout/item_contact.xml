@@ -5,6 +5,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:padding="16dp"
+    android:clickable="true"
+    android:focusable="true"
     android:background="?attr/selectableItemBackground">
 
     <github.com.st235.swipetoactionlayout.CircularImageView
