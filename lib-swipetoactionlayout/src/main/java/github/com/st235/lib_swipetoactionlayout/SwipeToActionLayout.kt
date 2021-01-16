@@ -264,7 +264,9 @@ class SwipeToActionLayout @JvmOverloads constructor(
             return super.onInterceptTouchEvent(ev)
         }
 
-        return viewDragHelper.shouldInterceptTouchEvent(ev)
+        val shouldIntercept = viewDragHelper.shouldInterceptTouchEvent(ev)
+        parent.requestDisallowInterceptTouchEvent(shouldIntercept)
+        return shouldIntercept
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {

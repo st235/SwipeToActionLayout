@@ -9,7 +9,7 @@ data class ContactInfo(
     val email: String
     get() {
         val raw = name.split(" ")
-        return String.format("%s.%s@hooly.xyz", raw[0].toLowerCase(), raw[1].toLowerCase())
+        return String.format("%s.%s@hooli.xyz", raw[0].toLowerCase(), raw[1].toLowerCase())
     }
 
 }
