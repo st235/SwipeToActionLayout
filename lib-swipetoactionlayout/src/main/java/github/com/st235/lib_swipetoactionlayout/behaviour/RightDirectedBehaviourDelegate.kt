@@ -1,15 +1,17 @@
 package github.com.st235.lib_swipetoactionlayout.behaviour
 
 import android.content.Context
-import android.graphics.Point
 import android.view.View
 import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
+import github.com.st235.lib_swipetoactionlayout.utils.VelocityHelper
 import github.com.st235.lib_swipetoactionlayout.utils.clamp
 
 internal open class RightDirectedBehaviourDelegate(
     private val actionCount: Int,
     private val context: Context
 ): BehaviourDelegate {
+
+    protected val velocityHelper = VelocityHelper(context)
 
     override fun layoutAction(view: View, l: Int, r: Int, actionSize: Int) {
         //reset view translation on relayout
@@ -34,11 +36,13 @@ internal open class RightDirectedBehaviourDelegate(
 
     override fun getFinalLeftPosition(view: View, velocity: Float, actionSize: Int): Int {
         val translateDistance = actionSize * actionCount
+        val isFastFling = velocityHelper.shouldBeConsideredAsFast(velocity)
 
-        return if (isOpened(view.left, actionSize)) {
-            -translateDistance
-        } else {
-            0
+        return when {
+            isFastFling && velocityHelper.isLeft(velocity) -> -translateDistance
+            isFastFling && velocityHelper.isRight(velocity) -> 0
+            isOpened(view.left, actionSize) -> -translateDistance
+            else -> 0
         }
     }
 

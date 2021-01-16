@@ -110,17 +110,14 @@ internal class FullRightDirectedBehaviorDelegate(
 
     override fun getFinalLeftPosition(view: View, velocity: Float, actionSize: Int): Int {
         val translateDistance = actionSize * actionCount
+        val isFastFling = velocityHelper.shouldBeConsideredAsFast(velocity)
 
         return when {
-            isFullyOpened(view, actionSize) -> {
-                -view.measuredWidth
-            }
-            isOpened(view.left, actionSize) -> {
-                -translateDistance
-            }
-            else -> {
-                0
-            }
+            isFullyOpened(view, actionSize) -> -view.measuredWidth
+            isFastFling && velocityHelper.isLeft(velocity) -> -translateDistance
+            isFastFling && velocityHelper.isRight(velocity) -> 0
+            isOpened(view.left, actionSize) -> -translateDistance
+            else -> 0
         }
     }
 
