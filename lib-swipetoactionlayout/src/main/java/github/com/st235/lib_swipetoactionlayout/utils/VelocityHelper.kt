@@ -1,7 +1,6 @@
 package github.com.st235.lib_swipetoactionlayout.utils
 
 import android.content.Context
-import android.util.Log
 import android.view.ViewConfiguration
 import kotlin.math.abs
 

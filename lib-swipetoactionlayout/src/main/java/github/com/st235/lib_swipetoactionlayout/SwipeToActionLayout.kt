@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
 import android.view.*
+import androidx.annotation.MenuRes
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper
 import github.com.st235.lib_swipetoactionlayout.behaviour.BehaviourDelegate
@@ -120,12 +121,6 @@ class SwipeToActionLayout @JvmOverloads constructor(
                 QuickActionsStates.FULL_OPENED -> {
                     menuListener?.onFullyOpened(this, actions.last())
                 }
-                QuickActionsStates.OPENED -> {
-                    menuListener?.onOpened(this)
-                }
-                QuickActionsStates.CLOSED -> {
-                    menuListener?.onClosed(this)
-                }
             }
 
         }
@@ -137,10 +132,21 @@ class SwipeToActionLayout @JvmOverloads constructor(
                         performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                     }
                 }
-                else -> {
+                QuickActionsStates.OPENED -> {
+                    menuListener?.onOpened(this)
+                }
+                QuickActionsStates.CLOSED -> {
+                    menuListener?.onClosed(this)
                 }
             }
         }
+    }
+
+    fun setActionsRes(@MenuRes menuRes: Int) {
+        val barParser = XmlMenuParser(context)
+        val items = barParser.inflate(menuRes)
+        actions = items
+        reloadActions()
     }
 
     fun close() {

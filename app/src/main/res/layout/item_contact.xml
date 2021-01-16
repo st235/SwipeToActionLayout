@@ -19,9 +19,8 @@
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/isOnline"
-        android:layout_width="8dp"
-        android:layout_height="8dp"
-        android:layout_margin="3dp"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
         app:srcCompat="@drawable/circle_green"
         app:layout_constraintEnd_toEndOf="@id/icon"
         app:layout_constraintBottom_toBottomOf="@id/icon" />

@@ -1,12 +1,13 @@
 package github.com.st235.swipetoactionlayout
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import github.com.st235.lib_swipetoactionlayout.SwipeAction
 import kotlinx.android.synthetic.main.activity_main.*
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,7 +32,7 @@ class MainActivity : AppCompatActivity() {
             ContactInfo("Landyn Martin", "Product Designer", true),
             ContactInfo("Madalyn Savage", "Software Engineer", true),
             ContactInfo("Cindy Moss", "Sales Manager", true),
-            ContactInfo("Alexander Dadukin", "Cats Lover", true),
+            ContactInfo("Alexander Dadukin", "Cats Lover", true, true),
             ContactInfo("Mathew Tapia", "Software Engineer", true),
             ContactInfo("Ayanna Shields", "Copyrighter", false)
         )
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
             R.id.call -> call(item)
             R.id.email -> email(item)
             R.id.delete -> remove(item)
+            R.id.star -> openRepo()
         }
     }
 
@@ -61,5 +63,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun remove(item: ContactInfo) {
         adapter.remove(item)
+    }
+
+    private fun openRepo() {
+        val url = "https://github.com/st235/SwipeToActionLayout"
+        val i = Intent(Intent.ACTION_VIEW)
+        i.data = Uri.parse(url)
+        startActivity(i)
     }
 }

@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.RecyclerView
+import github.com.st235.lib_swipetoactionlayout.ActionBindHelper
 import github.com.st235.lib_swipetoactionlayout.SwipeAction
 import github.com.st235.lib_swipetoactionlayout.SwipeMenuListener
 import github.com.st235.swipetoactionlayout.identicon.IdenticonDrawable
@@ -17,6 +18,8 @@ class ContactsAdapter(
     private val contacts: MutableList<ContactInfo>,
     private val onActionClicked: OnActionClicked
 ): RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>() {
+
+    private val actionsBindHelper = ActionBindHelper()
 
     fun remove(contact: ContactInfo) {
         val index = contacts.indexOf(contact)
@@ -35,7 +38,9 @@ class ContactsAdapter(
     }
 
     override fun onBindViewHolder(holder: ContactsViewHolder, position: Int) {
-        holder.bind(contacts.get(position))
+        val contact = contacts[position]
+        actionsBindHelper.bind(contact.name, holder.swipeToActionLayout)
+        holder.bind(contact)
     }
 
     inner class ContactsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), SwipeMenuListener {
@@ -64,6 +69,14 @@ class ContactsAdapter(
             }
 
             description.text = String.format("%s, %s", contact.position, contact.email)
+
+            if (contact.isAuthor) {
+                isOnline.setImageResource(R.drawable.ic_favorite_black_18dp)
+                swipeToActionLayout.setActionsRes(R.menu.special_menu)
+            } else {
+                isOnline.setImageResource(R.drawable.circle_green)
+                swipeToActionLayout.setActionsRes(R.menu.swipe_to_action_menu)
+            }
         }
 
         override fun onClosed(view: View) {
@@ -71,7 +84,8 @@ class ContactsAdapter(
         }
 
         override fun onOpened(view: View) {
-            // empty on purpose
+            val contact = contacts[adapterPosition]
+            actionsBindHelper.closeOtherThan(contact.name)
         }
 
         override fun onFullyOpened(view: View, quickAction: SwipeAction) {
