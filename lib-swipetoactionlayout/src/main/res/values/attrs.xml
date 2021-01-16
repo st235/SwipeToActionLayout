@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SwipeToActionLayout">
+        <attr name="sal_gravity" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+            <enum name="start" value="2" />
+            <enum name="end" value="3" />
+        </attr>
+        <attr name="sal_isFullActionSupported" format="boolean" />
+        <attr name="sal_shouldVibrateOnQuickAction" format="boolean" />
+
+        <attr name="sal_items" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="SwipeActionItem">
+        <attr name="android:id" />
+        <attr name="android:title" />
+        <attr name="android:icon" />
+        <attr name="android:titleTextColor" format="color" />
+        <attr name="android:background" format="reference" />
+        <attr name="android:iconTint" format="color" />
+    </declare-styleable>
+</resources>

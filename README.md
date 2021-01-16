@@ -1,9 +1,11 @@
-<img src="https://raw.githubusercontent.com/st235/SwipeToActionLayout/master/images/showcase.gif" width="719" height="117">
+<img src="images/showcase.gif" width="540" height="105">
 
 # SwipeToActionLayout
 [![Download](https://api.bintray.com/packages/st235/maven/swipetoactionlayout/images/download.svg)](https://bintray.com/st235/maven/swipetoactionlayout/_latestVersion)
 
-Another one swipe to reveal like menu 🎭
+SwipeToActionLayout is a layout which helps to implement swipe to reveal behaviour. It is really easy to setup and maintain.
+
+First of all, you need to download it, don't you? 🙂
 
 ## Download from ...
 
@@ -32,19 +34,113 @@ implementation 'com.github.st235:swipetoactionlayout:X.X'
 </dependency>
 ```
 
-P.S.: Check out latest version code in badge at the top of this page.
+P.S.: The latest code version is mentioned at the version badge at the top of this page.
 
 ## Usage
 
+After you have downloaded the library, you need to integrate it. You should declare layout at your xml.
+
+```xml
+<github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:sal_gravity="right"
+    app:sal_isFullActionSupported="false"
+    app:sal_items="@menu/swipe_to_action_menu"
+    app:sal_shouldVibrateOnQuickAction="false">
+
+    ... draggable child ...
+
+</github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout>
+```
+
+Xml declaration supports the following attributes:
+
+| property | type | description |
+| ----- | ----- | ----- |
+| **sal_gravity** | enum | gravity of your action menu. could be without rtl support, ie left or right, and with rtl support, ie start and end |
+| **sal_isFullActionSupported** | boolean | allows you to add support of quick action, which will be revealed on full swipe |
+| **sal_shouldVibrateOnQuickAction** | boolean | when quick action will be applied view can perform haptic feedback. set this flag as true if you want to support it. |
+| **sal_items** | reference | reference to your xml menu file |
+
+If you decided to use xml-declared menu then you should create menu file by the next rules:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/call"
+        android:icon="@drawable/ic_call_black_18dp"
+        android:background="@drawable/action_background"
+        android:iconTint="@color/iconTint"/>
+
+    <item
+        android:id="@+id/email"
+        android:icon="@drawable/ic_email_black_18dp"
+        android:background="@drawable/action_background"
+        android:iconTint="@color/iconTint" />
+
+    <item
+        android:id="@+id/delete"
+        android:icon="@drawable/ic_delete_black_18dp"
+        android:background="@drawable/action_background"
+        android:iconTint="@color/colorAccent" />
+</menu>
+```
+
+An item supports the following attributes:
+
+| property | type | description |
+| ----- | ----- | ----- |
+| **id** | id | an id of your action |
+| **title** | text | a supporting text, will be shown under icon |
+| **icon** | reference | a reference to drawable |
+| **titleTextColor** | color | a color of your title |
+| **background** | reference | a reference to your background resource |
+| **iconTint** | color | tint to your icon, allows to change color of it |
+
+PS: all these properties are start with `android` prefix, for example `android:background`
+
+Is is also possible to apply actions programmatically
+
 ```kotlin
-        swipeToActionLayout.setItems(
+        swipeToActionLayout.actions =
                 listOf(
                         SwipeAction(0xFFFBDAEE.toInt(), R.drawable.baseline_call_24, getString(R.string.action_call), Color.BLACK, Color.BLACK),
                         SwipeAction(0xFFFFF7A4.toInt(), R.drawable.baseline_email_24, getString(R.string.action_email), Color.BLACK, Color.BLACK),
                         SwipeAction(0xFFC0E7F6.toInt(), R.drawable.baseline_duo_24, getString(R.string.action_duo), Color.BLACK, Color.BLACK)
                 )
-        )
 ```
+
+To listen lifecycle callbacks from `SwipeToActionLayout` you should implement `SwipeMenuListener`
+
+```Kotlin
+
+swipeToActionLayout.menuListener = MenuListener()
+
+private inner class MenuListener: SwipeMenuListener {
+
+        override fun onClosed(view: View) {
+            // empty on purpose
+        }
+
+        override fun onOpened(view: View) {
+            // empty on purpose
+        }
+
+        override fun onFullyOpened(view: View, quickAction: SwipeAction) {
+            // empty on purpose
+        }
+
+     override fun onActionClicked(view: View, action: SwipeAction) {
+         Toast.makeText(this@MainActivity, "On clicked on: ${action.text}", Toast.LENGTH_SHORT).show()
+         swipeToActionLayout.close()
+     }
+ }
+
+```
+
+And that is it. Enjoy it!
 
 ### License
 

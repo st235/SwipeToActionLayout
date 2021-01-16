@@ -1,36 +1,19 @@
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
-apply plugin: 'com.novoda.bintray-release'
-
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.novoda:bintray-release:0.9.1'
-    }
-}
-
-publish {
-    userOrg = 'st235'
-    groupId = 'com.github.st235'
-    artifactId = 'swipetoactionlayout'
-    publishVersion = '0.1'
-    desc = 'Another one swipe gesture menu.'
-    website = 'https://github.com/st235/SwipeToActionLayout'
-}
+apply plugin: 'kotlin-android-extensions'
+apply from: './install.gradle'
+apply from: './publish.gradle'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.0"
+    compileSdkVersion 30
+    buildToolsVersion "29.0.2"
 
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 1
-        versionName "0.1"
+        minSdkVersion 16
+        targetSdkVersion 30
+        versionCode vers.versionCode
+        versionName vers.versionName
     }
 
     buildTypes {
@@ -39,11 +22,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.0.2'
-    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.core:core-ktx:1.3.2'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
 }

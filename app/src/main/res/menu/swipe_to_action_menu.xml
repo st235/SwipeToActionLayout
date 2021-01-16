@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/call"
+        android:icon="@drawable/ic_call_black_18dp"
+        android:background="@drawable/action_background"
+        android:iconTint="@color/iconTint"
+        tools:ignore="MenuTitle,UnusedAttribute" />
+
+    <item
+        android:id="@+id/email"
+        android:icon="@drawable/ic_email_black_18dp"
+        android:background="@drawable/action_background"
+        android:iconTint="@color/iconTint"
+        tools:ignore="MenuTitle,UnusedAttribute" />
+
+    <item
+        android:id="@+id/delete"
+        android:icon="@drawable/ic_delete_black_18dp"
+        android:background="@drawable/action_background"
+        android:iconTint="@color/colorAccent"
+        tools:ignore="MenuTitle,UnusedAttribute" />
+</menu>
