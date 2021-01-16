@@ -9,6 +9,7 @@ import github.com.st235.lib_swipetoactionlayout.behaviour.BehaviourDelegate
 import github.com.st235.lib_swipetoactionlayout.behaviour.BehaviourDelegatesFactory
 import github.com.st235.lib_swipetoactionlayout.behaviour.NoOpBehaviourDelegate
 import github.com.st235.lib_swipetoactionlayout.events.QuickActionsMenuStateProcessor
+import github.com.st235.lib_swipetoactionlayout.parsers.XmlMenuParser
 import github.com.st235.lib_swipetoactionlayout.utils.isLtr
 import github.com.st235.lib_swipetoactionlayout.utils.max
 import github.com.st235.lib_swipetoactionlayout.utils.min
@@ -20,19 +21,21 @@ class SwipeToActionLayout @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr) {
 
-    enum class MenuGravity {
+    enum class MenuGravity(
+        internal val id: Int
+    ) {
 
-        LEFT {
+        LEFT(0) {
             override fun getViewGravity(): Int {
                 return Gravity.RIGHT
             }
         },
-        RIGHT {
+        RIGHT(1) {
             override fun getViewGravity(): Int {
                 return Gravity.LEFT
             }
         },
-        START {
+        START(2) {
             override fun getViewGravity(): Int {
                 return if (isLtr()) {
                     Gravity.RIGHT
@@ -41,7 +44,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
                 }
             }
         },
-        END {
+        END(3) {
             override fun getViewGravity(): Int {
                 return if (isLtr()) {
                     Gravity.LEFT
@@ -53,6 +56,10 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
         internal abstract fun getViewGravity(): Int
 
+        internal companion object {
+            fun findById(id: Int): MenuGravity =
+                MenuGravity.values().find { it.id == id } ?: throw IllegalArgumentException("Cannot find value with id: $id")
+        }
     }
 
     var actions: List<SwipeAction> = mutableListOf()
@@ -89,13 +96,28 @@ class SwipeToActionLayout @JvmOverloads constructor(
     private var delegate: BehaviourDelegate = NoOpBehaviourDelegate()
     private val viewDragHelper = ViewDragHelper.create(this, ViewDragHelperCallback())
 
-    var menuListener: MenuListener? = null
+    var menuListener: SwipeMenuListener? = null
 
     init {
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.SwipeToActionLayout)
+
+        gravity = MenuGravity.findById(typedArray.getInt(R.styleable.SwipeToActionLayout_sal_gravity, MenuGravity.RIGHT.id))
+        isFullActionSupported = typedArray.getBoolean(R.styleable.SwipeToActionLayout_sal_isFullActionSupported, false)
+        shouldVibrateOnQuickAction = typedArray.getBoolean(R.styleable.SwipeToActionLayout_sal_shouldVibrateOnQuickAction, false)
+
+        val menuId = typedArray.getResourceId(R.styleable.SwipeToActionLayout_sal_items, View.NO_ID)
+        if (menuId != View.NO_ID) {
+            val barParser = XmlMenuParser(context)
+            val items = barParser.inflate(menuId)
+            actions = items
+        }
+
+        typedArray.recycle()
+
         inProgressStateProcessor.onReleaseStateChanged = { state ->
             when (state) {
                 QuickActionsStates.FULL_OPENED -> {
-                    menuListener?.onFullyOpened(this)
+                    menuListener?.onFullyOpened(this, actions.last())
                 }
                 QuickActionsStates.OPENED -> {
                     menuListener?.onOpened(this)

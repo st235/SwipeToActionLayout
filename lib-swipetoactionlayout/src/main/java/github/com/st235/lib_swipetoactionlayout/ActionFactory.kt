@@ -2,6 +2,7 @@ package github.com.st235.lib_swipetoactionlayout
 
 import android.content.Context
 import android.graphics.PorterDuff
+import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -64,7 +65,13 @@ internal class ActionFactory(
         )
 
         val finalContainer = if (isLast) wrap(container, gravity) else container
-        finalContainer.background = item.background
+
+        if (item.background is ColorDrawable) {
+            finalContainer.background = item.background
+        } else {
+            container.background = item.background
+        }
+
         markAsAction(finalContainer, isLast)
 
         return finalContainer

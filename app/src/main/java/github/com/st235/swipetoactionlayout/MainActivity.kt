@@ -1,56 +1,65 @@
 package github.com.st235.swipetoactionlayout
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import github.com.st235.lib_swipetoactionlayout.MenuListener
+import androidx.recyclerview.widget.LinearLayoutManager
 import github.com.st235.lib_swipetoactionlayout.SwipeAction
-import github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var deprecatedSwipeToActionLayout: SwipeToActionLayout
+    private val adapter = ContactsAdapter(
+        mutableListOf(
+            ContactInfo("John Doe", "CEO", false),
+            ContactInfo("Waylon Dalton", "CTO", false),
+            ContactInfo("Marcus Cruz", "VP of Engineering", true),
+            ContactInfo("Eddie Randolph", "VP of Design", true),
+            ContactInfo("Hadassah Hartman", "Sales Director", false),
+            ContactInfo("Justine Henderson", "Director of Engineering", true),
+            ContactInfo("Thalia Cobb", "Staff Software Engineer", true),
+            ContactInfo("Angela Walker", "Staff Software Engineer", true),
+            ContactInfo("Joanna Shaffer", "Senior Product Designer", false),
+            ContactInfo("Abdullah Lang", "Senior Product Owner", false),
+            ContactInfo("Mathias Little", "Senior Software Engineer", true),
+            ContactInfo("Lia Shelton", "Software Engineer", true),
+            ContactInfo("Jonathon Sheppard", "Product Designer", true),
+            ContactInfo("Will Odom", "Product Designer", true),
+            ContactInfo("Adriana Fry", "Software Engineer", true),
+            ContactInfo("Elaina Vasquez", "Intern Designer", true),
+            ContactInfo("Landyn Martin", "Product Designer", true),
+            ContactInfo("Madalyn Savage", "Software Engineer", true),
+            ContactInfo("Cindy Moss", "Sales Manager", true),
+            ContactInfo("Alexander Dadukin", "Cats Lover", true),
+            ContactInfo("Mathew Tapia", "Software Engineer", true),
+            ContactInfo("Ayanna Shields", "Copyrighter", false)
+        )
+    ) { item, action ->
+        when (action.actionId) {
+            R.id.call -> call(item)
+            R.id.email -> email(item)
+            R.id.delete -> remove(item)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        deprecatedSwipeToActionLayout = findViewById(R.id.swipeToActionLayout)
-        deprecatedSwipeToActionLayout.gravity = SwipeToActionLayout.MenuGravity.END
-        deprecatedSwipeToActionLayout.isFullActionSupported = true
-        deprecatedSwipeToActionLayout.shouldVibrateOnQuickAction = true
-        deprecatedSwipeToActionLayout.menuListener = MenuListener()
-
-        deprecatedSwipeToActionLayout.actions =
-                listOf(
-                        SwipeAction(0, ColorDrawable(0xFFFBDAEE.toInt()), R.drawable.baseline_call_24, getString(R.string.action_call), Color.BLACK, Color.BLACK),
-                        SwipeAction(1, ColorDrawable(0xFFFFF7A4.toInt()), R.drawable.baseline_email_24, getString(R.string.action_email), Color.BLACK, Color.BLACK),
-                        SwipeAction(3, ColorDrawable(0xFFC0E7F6.toInt()), R.drawable.baseline_duo_24, getString(R.string.action_duo), Color.BLACK, Color.BLACK)
-                )
-
-
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = adapter
     }
 
-    private inner class MenuListener: github.com.st235.lib_swipetoactionlayout.MenuListener {
+    private fun call(item: ContactInfo) {
+        Toast.makeText(this, "Calling to: ${item.name}", Toast.LENGTH_SHORT).show()
+    }
 
-        override fun onClosed(view: View) {
-        }
+    private fun email(item: ContactInfo) {
+        Toast.makeText(this, "Email to: ${item.email}", Toast.LENGTH_SHORT).show()
+    }
 
-        override fun onOpened(view: View) {
-        }
-
-        override fun onFullyOpened(view: View) {
-            deprecatedSwipeToActionLayout.postDelayed({
-                deprecatedSwipeToActionLayout.close()
-            }, 1_000)
-        }
-
-        override fun onActionClicked(view: View, action: SwipeAction) {
-            Toast.makeText(this@MainActivity, "On clicked on: ${action.text}", Toast.LENGTH_SHORT).show()
-            deprecatedSwipeToActionLayout.close()
-        }
+    private fun remove(item: ContactInfo) {
+        adapter.remove(item)
     }
 }
