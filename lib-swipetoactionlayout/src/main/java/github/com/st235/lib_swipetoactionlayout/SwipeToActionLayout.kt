@@ -156,8 +156,9 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
     private fun transitionToState(state: QuickActionsStates) {
         val position = delegate.gePositionForState(this, actionSize, state)
-        viewDragHelper.smoothSlideViewTo(findContentView(), position, 0)
-        invalidate()
+        if (viewDragHelper.smoothSlideViewTo(findContentView(), position, 0)) {
+            ViewCompat.postInvalidateOnAnimation(this)
+        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
