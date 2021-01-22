@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ShowcaseActivity">
+
+    <github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
+        android:id="@+id/swipeToActionLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:padding="16dp"
+            android:textColor="#fff"
+            android:text="Swipe to action"
+            android:gravity="center"
+            android:textSize="32sp" />
+
+    </github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout>
+
+    <CheckBox
+        android:id="@+id/vibrateCheckBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Vibrate on quick action" />
+
+    <CheckBox
+        android:id="@+id/quickActionCheckBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Allow quick action" />
+
+    <st235.com.github.flow_layout.FlowLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gravity left" />
+
+        <Button
+            android:id="@+id/right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gravity right" />
+
+        <Button
+            android:id="@+id/start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gravity start" />
+
+        <Button
+            android:id="@+id/end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gravity end" />
+
+    </st235.com.github.flow_layout.FlowLayout>
+
+    <st235.com.github.flow_layout.FlowLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/open"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Open" />
+
+        <Button
+            android:id="@+id/close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Close" />
+
+        <Button
+            android:id="@+id/openFully"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Open fully" />
+
+    </st235.com.github.flow_layout.FlowLayout>
+
+</LinearLayout>

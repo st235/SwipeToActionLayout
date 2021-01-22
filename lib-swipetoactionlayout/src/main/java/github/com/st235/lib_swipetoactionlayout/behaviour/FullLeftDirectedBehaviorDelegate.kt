@@ -62,11 +62,15 @@ internal class FullLeftDirectedBehaviorDelegate(
                 animation = ValueAnimator.ofFloat(0F, 1F)
                 originalRight = actionView.translationX
 
+                val startingPosition = actionView.translationX
+
                 animation?.addUpdateListener {
                     val progress = (it.animatedValue as Float)
-                    val distance = mainView.left - actionView.translationX
-                    actionView.translationX += (distance * progress - actionView.right).toInt()
+                    val distance = mainView.left - startingPosition
+                    actionView.translationX = startingPosition + distance * progress
                 }
+
+                animation?.duration = 250L
 
                 animation?.addListener(onEnd = {
                     this.animation = null
@@ -112,7 +116,7 @@ internal class FullLeftDirectedBehaviorDelegate(
                     distance * (actionCount - index + 1).toFloat() / actionCount
                 )
 
-                if (state == States.IS_CLOSING) {
+                if (state == States.IS_CLOSING || state == States.IS_OPENING) {
                     originalRight = finalOrigin
                 } else {
                     actionView.translationX = finalOrigin
