@@ -11,19 +11,67 @@ import github.com.st235.lib_swipetoactionlayout.utils.clamp
 internal class FullRightDirectedBehaviorDelegate(
     private val actionCount: Int,
     private val context: Context
-): RightDirectedBehaviourDelegate(actionCount, context) {
+) : RightDirectedBehaviourDelegate(actionCount, context) {
 
-    enum class States {
-        CLOSED,
-        IS_CLOSING,
-        OPENED,
-        IS_OPENING
+    private inner class LastActionDelegate : LastActionStateController.Delegate {
+
+        override fun isFullyOpened(view: View, actionSize: Int): Boolean {
+            return this@FullRightDirectedBehaviorDelegate.isFullyOpened(view, actionSize)
+        }
+
+        override fun createOpeningAnimation(
+            mainView: View,
+            actionView: View,
+            actionSize: Int
+        ): LastActionStateController.AnimatorListener {
+            return object : LastActionStateController.AnimatorListener() {
+                override fun onUpdate(animator: ValueAnimator) {
+                    val percent = (animator.animatedValue as Float)
+                    val distance = (actionView.left - mainView.right) + actionView.translationX
+                    actionView.left = actionView.left - (distance * percent).toInt()
+                }
+            }
+        }
+
+        override fun createClosingAnimation(
+            mainView: View,
+            actionView: View,
+            actionSize: Int
+        ): LastActionStateController.AnimatorListener {
+            return object : LastActionStateController.AnimatorListener() {
+
+                private val finalViewPosition = mainView.measuredWidth
+
+                override fun onUpdate(animator: ValueAnimator) {
+                    val percent = (animator.animatedValue as Float)
+                    val distance = (finalViewPosition - actionView.left)
+                    actionView.left = (actionView.left + distance * percent).toInt()
+                }
+
+                override fun onCancel() {
+                    actionView.left = finalViewPosition
+                }
+            }
+        }
+
+        override fun onLastActionFullMove(mainView: View, actionView: View) {
+            actionView.left = (mainView.right - actionView.translationX).toInt()
+        }
+
+        override fun onCrossInteractionMove(isAnimatedState: Boolean, mainView: View, actionView: View, actionSize: Int, index: Int) {
+            val distance = actionSize * actionCount
+            val distanceFill = clamp(mainView.left / -distance.toFloat(), 0F, 1F)
+
+            actionView.translationX =
+                clamp(
+                    (distanceFill * -distance * ((actionCount - index + 1).toFloat() / actionCount)),
+                    -distance * (actionCount - index + 1).toFloat() / actionCount,
+                    0F
+                )
+        }
     }
 
-    private var state = States.CLOSED
-    private var originalLeft = 0
-
-    private var animation: ValueAnimator? = null
+    private val lastActionStateController = LastActionStateController(LastActionDelegate())
 
     override fun layoutAction(view: View, l: Int, r: Int, actionSize: Int) {
         if (!ActionFactory.isLast(view)) {
@@ -40,64 +88,18 @@ internal class FullRightDirectedBehaviorDelegate(
     }
 
     override fun translateAction(mainView: View, actionView: View, actionSize: Int, dx: Int, index: Int) {
-        val distance = actionSize * actionCount
-        val distanceFill = clamp(mainView.left / -distance.toFloat(), 0F, 1F)
+        if (!ActionFactory.isLast(actionView)) {
+            val distance = actionSize * actionCount
+            val distanceFill = clamp(mainView.left / -distance.toFloat(), 0F, 1F)
 
-        actionView.translationX =
-            clamp(
-                (distanceFill * -distance * ((actionCount - index + 1).toFloat() / actionCount)),
-                -distance * (actionCount - index + 1).toFloat() / actionCount,
-                0F
-            )
-
-        if (ActionFactory.isLast(actionView)) {
-            if (isFullyOpened(mainView, actionSize) && (state != States.IS_OPENING && state != States.OPENED)) {
-                animation?.cancel()
-
-                state = States.IS_OPENING
-                animation = ValueAnimator.ofFloat(0F, 1F)
-                originalLeft = actionView.left
-
-                animation?.addUpdateListener {
-                    val percent = (it.animatedValue as Float)
-                    val distance = (actionView.left - mainView.right) + actionView.translationX
-                    actionView.left = actionView.left - (distance * percent).toInt()
-                }
-
-                animation?.addListener(onEnd = {
-                    this.animation = null
-                    state = States.OPENED
-                }, onCancel = {
-                    this.animation = null
-                    state = States.OPENED
-                })
-
-                animation?.start()
-            } else if (isFullyOpened(mainView, actionSize) && (state == States.OPENED)) {
-                actionView.left = (mainView.right - actionView.translationX).toInt()
-            } else if (!isFullyOpened(mainView, actionSize) && (state != States.IS_CLOSING && state != States.CLOSED)) {
-                animation?.cancel()
-
-                state = States.IS_CLOSING
-                animation = ValueAnimator.ofFloat(0F, 1F)
-
-                animation?.addUpdateListener {
-                    val percent = (it.animatedValue as Float)
-                    val distance = (originalLeft - actionView.left)
-                    actionView.left = (actionView.left + distance * percent).toInt()
-                }
-
-                animation?.addListener(onEnd = {
-                    this.animation = null
-                    state = States.CLOSED
-                }, onCancel = {
-                    this.animation = null
-                    actionView.left = originalLeft
-                    state = States.CLOSED
-                })
-
-                animation?.start()
-            }
+            actionView.translationX =
+                clamp(
+                    (distanceFill * -distance * ((actionCount - index + 1).toFloat() / actionCount)),
+                    -distance * (actionCount - index + 1).toFloat() / actionCount,
+                    0F
+                )
+        } else {
+            lastActionStateController.onTranslate(mainView, actionView, actionSize, dx, index)
         }
     }
 
@@ -147,7 +149,7 @@ internal class FullRightDirectedBehaviorDelegate(
     }
 
     override fun gePositionForState(view: View, actionSize: Int, states: QuickActionsStates): Int {
-        return when(states) {
+        return when (states) {
             QuickActionsStates.FULL_OPENED -> -view.measuredWidth
             QuickActionsStates.OPENED -> -(actionSize * actionCount)
             QuickActionsStates.CLOSED -> 0

@@ -15,18 +15,90 @@ internal class FullLeftDirectedBehaviorDelegate(
     private val context: Context
 ): LeftDirectedBehaviourDelegate(actionCount, context) {
 
-    enum class States {
-        CLOSED,
-        IS_CLOSING,
-        OPENED,
-        IS_OPENING
+
+    private inner class LastActionDelegate : LastActionStateController.Delegate {
+
+        private var originalRight: Float = 0F
+        private var lastRightPosition: Float = 0F
+
+        override fun isFullyOpened(view: View, actionSize: Int): Boolean {
+            return this@FullLeftDirectedBehaviorDelegate.isFullyOpened(view, actionSize)
+        }
+
+        override fun createOpeningAnimation(
+            mainView: View,
+            actionView: View,
+            actionSize: Int
+        ): LastActionStateController.AnimatorListener {
+            originalRight = actionView.translationX
+
+            return object : LastActionStateController.AnimatorListener() {
+
+                val startingPosition = actionView.translationX
+
+                override fun onUpdate(animator: ValueAnimator) {
+                    val progress = (animator.animatedValue as Float)
+                    val distance = mainView.left - startingPosition
+                    actionView.translationX = startingPosition + distance * progress
+                }
+
+                override fun onEnd() {
+                    lastRightPosition = actionView.translationX
+                }
+            }
+        }
+
+        override fun createClosingAnimation(
+            mainView: View,
+            actionView: View,
+            actionSize: Int
+        ): LastActionStateController.AnimatorListener {
+            return object : LastActionStateController.AnimatorListener() {
+
+                override fun onUpdate(animator: ValueAnimator) {
+                    val progress = 1F - (animator.animatedValue as Float)
+                    val finalPoint = min(originalRight, actionView.translationX)
+                    val distance = max(lastRightPosition - finalPoint, 0F)
+                    actionView.translationX = originalRight + progress * distance
+                    lastRightPosition = actionView.translationX
+                }
+
+                override fun onCancel() {
+                    actionView.translationX = originalRight
+                }
+            }
+        }
+
+        override fun onLastActionFullMove(mainView: View, actionView: View) {
+            actionView.translationX = mainView.left.toFloat()
+            lastRightPosition = actionView.translationX
+        }
+
+        override fun onCrossInteractionMove(
+            isAnimatedState: Boolean,
+            mainView: View,
+            actionView: View,
+            actionSize: Int,
+            index: Int
+        ) {
+            val distance = actionSize * actionCount
+            val distanceFill = clamp(mainView.left / distance.toFloat(), 0F, 1F)
+
+            val finalOrigin = clamp(
+                (distanceFill * distance * ((actionCount - index + 1).toFloat() / actionCount)),
+                0F,
+                distance * (actionCount - index + 1).toFloat() / actionCount
+            )
+
+            if (isAnimatedState) {
+                originalRight = finalOrigin
+            } else {
+                actionView.translationX = finalOrigin
+            }
+        }
     }
 
-    private var state = States.CLOSED
-    private var originalRight: Float = 0F
-    private var lastRightPosition: Float = 0F
-
-    private var animation: ValueAnimator? = null
+    private val lastActionStateController = LastActionStateController(LastActionDelegate())
 
     override fun layoutAction(view: View, l: Int, r: Int, actionSize: Int) {
         if (!ActionFactory.isLast(view)) {
@@ -43,85 +115,17 @@ internal class FullLeftDirectedBehaviorDelegate(
     }
 
     override fun translateAction(mainView: View, actionView: View, actionSize: Int, dx: Int, index: Int) {
-        val distance = actionSize * actionCount
-        val distanceFill = clamp(mainView.left / distance.toFloat(), 0F, 1F)
-
         if (!ActionFactory.isLast(actionView)) {
+            val distance = actionSize * actionCount
+            val distanceFill = clamp(mainView.left / distance.toFloat(), 0F, 1F)
+
             actionView.translationX = clamp(
                 (distanceFill * distance * ((actionCount - index + 1).toFloat() / actionCount)),
                 0F,
                 distance * (actionCount - index + 1).toFloat() / actionCount
             )
-        }
-
-        if (ActionFactory.isLast(actionView)) {
-            if (isFullyOpened(mainView, actionSize) && (state != States.IS_OPENING && state != States.OPENED)) {
-                animation?.cancel()
-
-                state = States.IS_OPENING
-                animation = ValueAnimator.ofFloat(0F, 1F)
-                originalRight = actionView.translationX
-
-                val startingPosition = actionView.translationX
-
-                animation?.addUpdateListener {
-                    val progress = (it.animatedValue as Float)
-                    val distance = mainView.left - startingPosition
-                    actionView.translationX = startingPosition + distance * progress
-                }
-
-                animation?.duration = 250L
-
-                animation?.addListener(onEnd = {
-                    this.animation = null
-                    lastRightPosition = actionView.translationX
-                    state = States.OPENED
-                }, onCancel = {
-                    this.animation = null
-                    state = States.OPENED
-                })
-
-                animation?.start()
-            } else if (isFullyOpened(mainView, actionSize) && (state == States.OPENED)) {
-                actionView.translationX = mainView.left.toFloat()
-                lastRightPosition = actionView.translationX
-            } else if (!isFullyOpened(mainView, actionSize) && (state != States.IS_CLOSING && state != States.CLOSED)) {
-                animation?.cancel()
-
-                state = States.IS_CLOSING
-                animation = ValueAnimator.ofFloat(1F, 0F)
-
-                animation?.addUpdateListener {
-                    val progress = (it.animatedValue as Float)
-                    val finalPoint = min(originalRight, actionView.translationX)
-                    val distance = max(lastRightPosition - finalPoint, 0F)
-                    actionView.translationX = originalRight + progress * distance
-                    lastRightPosition = actionView.translationX
-                }
-
-                animation?.addListener(onEnd = {
-                    this.animation = null
-                    state = States.CLOSED
-                }, onCancel = {
-                    this.animation = null
-                    actionView.translationX = originalRight
-                    state = States.CLOSED
-                })
-
-                animation?.start()
-            } else {
-                val finalOrigin = clamp(
-                    (distanceFill * distance * ((actionCount - index + 1).toFloat() / actionCount)),
-                    0F,
-                    distance * (actionCount - index + 1).toFloat() / actionCount
-                )
-
-                if (state == States.IS_CLOSING || state == States.IS_OPENING) {
-                    originalRight = finalOrigin
-                } else {
-                    actionView.translationX = finalOrigin
-                }
-            }
+        } else {
+            lastActionStateController.onTranslate(mainView, actionView, actionSize, dx, index)
         }
     }
 
