@@ -2,7 +2,6 @@ package github.com.st235.lib_swipetoactionlayout
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.view.*
 import androidx.annotation.MenuRes
 import androidx.core.view.ViewCompat
@@ -12,10 +11,10 @@ import github.com.st235.lib_swipetoactionlayout.behaviour.BehaviourDelegatesFact
 import github.com.st235.lib_swipetoactionlayout.behaviour.NoOpBehaviourDelegate
 import github.com.st235.lib_swipetoactionlayout.events.QuickActionsMenuStateProcessor
 import github.com.st235.lib_swipetoactionlayout.parsers.XmlMenuParser
+import github.com.st235.lib_swipetoactionlayout.utils.Size
 import github.com.st235.lib_swipetoactionlayout.utils.isLtr
 import github.com.st235.lib_swipetoactionlayout.utils.max
 import github.com.st235.lib_swipetoactionlayout.utils.min
-
 
 internal typealias SwipeToActionLayoutLayoutParams = ViewGroup.MarginLayoutParams
 
@@ -60,7 +59,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
         internal companion object {
             fun findById(id: Int): MenuGravity =
-                MenuGravity.values().find { it.id == id } ?: throw IllegalArgumentException("Cannot find value with id: $id")
+                values().find { it.id == id } ?: throw IllegalArgumentException("Cannot find value with id: $id")
         }
     }
 
@@ -93,7 +92,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
     private var inProgressStateProcessor = QuickActionsMenuStateProcessor()
 
-    private var actionSize = 0
+    private var actionSize: Size = Size(0, 0)
 
     private var delegate: BehaviourDelegate = NoOpBehaviourDelegate()
     private val viewDragHelper = ViewDragHelper.create(this, ViewDragHelperCallback())
@@ -162,13 +161,15 @@ class SwipeToActionLayout @JvmOverloads constructor(
     }
 
     private fun transitionToState(state: QuickActionsStates) {
-        val position = delegate.gePositionForState(this, actionSize, state)
+        val position = delegate.getPositionForState(this, actionSize, state)
         if (viewDragHelper.smoothSlideViewTo(findContentView(), position, 0)) {
             ViewCompat.postInvalidateOnAnimation(this)
         }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        assertOneChildOnly()
+
         var contentWidth = 0
         var contentHeight = 0
 
@@ -194,7 +195,15 @@ class SwipeToActionLayout @JvmOverloads constructor(
             contentHeight = max(contentHeight, childView.measuredHeight)
         }
 
-        actionSize = max(actionWidth, contentHeight /* action should be the same size as content */)
+        val maxAvailableWidth = desiredSize(widthMeasureSpec, contentWidth)
+        val actionCount = actions.size
+
+        val size = max(actionWidth, contentHeight /* action should be the same size as content */)
+        actionSize.set(size, size)
+
+        if (size * actionCount > 0.75 * maxAvailableWidth) {
+            actionSize.set(((0.75F * maxAvailableWidth) / actionCount).toInt(), actionSize.height)
+        }
 
         for (i in 0 until childCount) {
             val childView = getChildAt(i)
@@ -208,8 +217,8 @@ class SwipeToActionLayout @JvmOverloads constructor(
             }
 
             childView.measure(
-                MeasureSpec.makeMeasureSpec(actionSize, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(actionSize, MeasureSpec.EXACTLY)
+                MeasureSpec.makeMeasureSpec(actionSize.width, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(actionSize.height, MeasureSpec.EXACTLY)
             )
         }
 
@@ -293,6 +302,22 @@ class SwipeToActionLayout @JvmOverloads constructor(
         }
     }
 
+    private fun assertOneChildOnly() {
+        var count = 0
+
+        for (i in 0 until childCount) {
+            val child = getChildAt(i)
+
+            if (!ActionFactory.isAction(child)) {
+                count++
+
+                if (count > 1) {
+                    throw IllegalStateException("SwipeToActionLayout can handle only one direct child")
+                }
+            }
+        }
+    }
+
     private fun findContentView(): View {
         for (i in 0 until childCount) {
             val child = getChildAt(i)
@@ -302,7 +327,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
             }
         }
 
-        throw IllegalStateException()
+        throw IllegalStateException("Cannot find content view. There is should be one child.")
     }
 
     private fun reloadActions() {

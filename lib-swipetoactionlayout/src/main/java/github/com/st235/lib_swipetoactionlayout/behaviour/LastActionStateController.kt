@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.ValueAnimator
 import android.view.View
 import androidx.core.animation.addListener
+import github.com.st235.lib_swipetoactionlayout.utils.Size
 
 internal class LastActionStateController(
     private val delegate: Delegate
@@ -24,30 +25,30 @@ internal class LastActionStateController(
 
     interface Delegate {
 
-        fun isFullyOpened(view: View, actionSize: Int): Boolean
+        fun isFullyOpened(view: View, actionSize: Size): Boolean
 
         fun createOpeningAnimation(
             mainView: View,
             actionView: View,
-            actionSize: Int
+            actionSize: Size
         ): AnimatorListener
 
         fun createClosingAnimation(
             mainView: View,
             actionView: View,
-            actionSize: Int
+            actionSize: Size
         ): AnimatorListener
 
         fun onLastActionFullMove(mainView: View, actionView: View)
 
-        fun onCrossInteractionMove(isAnimatedState: Boolean, mainView: View, actionView: View, actionSize: Int, index: Int)
+        fun onCrossInteractionMove(isAnimatedState: Boolean, mainView: View, actionView: View, actionSize: Size, index: Int)
 
     }
 
     private var state = State.CLOSED
     private var animation: Animator? = null
 
-    fun onTranslate(mainView: View, actionView: View, actionSize: Int, dx: Int, index: Int) {
+    fun onTranslate(mainView: View, actionView: View, actionSize: Size, dx: Int, index: Int) {
         when {
             isFullyOpened(mainView, actionSize) && !isOpeningOrOpened() -> {
                 cancelAllPossibleAnimation()
@@ -93,7 +94,7 @@ internal class LastActionStateController(
         return animator
     }
 
-    private fun isFullyOpened(view: View, actionSize: Int): Boolean {
+    private fun isFullyOpened(view: View, actionSize: Size): Boolean {
         return delegate.isFullyOpened(view, actionSize)
     }
 
