@@ -1,13 +1,27 @@
 <img src="images/showcase.gif" width="540" height="105">
 
 # SwipeToActionLayout
-[![Download](https://api.bintray.com/packages/st235/maven/swipetoactionlayout/images/download.svg)](https://bintray.com/st235/maven/swipetoactionlayout/_latestVersion)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.st235/swipetoactionlayout/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.st235/swipetoactionlayout)
 
 SwipeToActionLayout is a layout which helps to implement swipe to reveal behaviour. It is really easy to setup and maintain.
 
 First of all, you need to download it, don't you? 🙂
 
 ## Download from ...
+
+__Important: library was migrated from JCenter to MavenCentral__ 
+
+It means that it may be necessary to add __mavenCentral__ repository to your repositories list
+
+```groovy
+allprojects {
+    repositories {
+        // your repositories
+
+        mavenCentral()
+    }
+}
+```
 
 - Maven
 
