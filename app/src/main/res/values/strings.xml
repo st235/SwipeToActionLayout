@@ -1,7 +1,3 @@
 <resources>
     <string name="app_name">SwipeToAction Layout</string>
-
-    <string name="action_call">Call</string>
-    <string name="action_email">Email</string>
-    <string name="action_duo">Chat</string>
 </resources>

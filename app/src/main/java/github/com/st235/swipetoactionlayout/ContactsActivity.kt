@@ -6,9 +6,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import kotlinx.android.synthetic.main.activity_contacts.*
+import androidx.recyclerview.widget.RecyclerView
 
 class ContactsActivity: AppCompatActivity() {
+
+    private lateinit var recyclerView: RecyclerView
 
     private val adapter = ContactsAdapter(
         mutableListOf(
@@ -47,6 +49,8 @@ class ContactsActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contacts)
+
+        recyclerView = findViewById(R.id.recycler_view)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter

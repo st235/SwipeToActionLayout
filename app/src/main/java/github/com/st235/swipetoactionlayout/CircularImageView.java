@@ -111,9 +111,9 @@ public class CircularImageView extends AppCompatImageView {
             return;
 
         if (!isInEditMode()) {
-            canvasSize = canvas.getWidth();
-            if (canvas.getHeight() < canvasSize) {
-                canvasSize = canvas.getHeight();
+            canvasSize = getWidth();
+            if (getHeight() < canvasSize) {
+                canvasSize = getHeight();
             }
         }
 
@@ -124,7 +124,7 @@ public class CircularImageView extends AppCompatImageView {
         // Draw Border
         canvas.drawCircle(circleCenter + borderWidth, circleCenter + borderWidth, circleCenter + borderWidth - (shadowRadius + shadowRadius / 2), paintBorder);
         // Draw CircularImageView
-        canvas.drawCircle(canvas.getWidth() / 2, canvas.getHeight() / 2, circleCenter - (shadowRadius + shadowRadius / 2), paint);
+        canvas.drawCircle(getWidth() / 2, getHeight() / 2, circleCenter - (shadowRadius + shadowRadius / 2), paint);
     }
 
     private void loadBitmap() {

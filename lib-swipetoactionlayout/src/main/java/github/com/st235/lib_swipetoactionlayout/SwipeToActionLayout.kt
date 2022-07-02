@@ -120,6 +120,9 @@ class SwipeToActionLayout @JvmOverloads constructor(
                 QuickActionsStates.FULL_OPENED -> {
                     menuListener?.onFullyOpened(this, actions.last())
                 }
+                else -> {
+                    // empty on purpose
+                }
             }
 
         }

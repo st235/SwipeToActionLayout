@@ -3,14 +3,15 @@ package github.com.st235.swipetoactionlayout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.AppCompatImageView
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.RecyclerView
 import github.com.st235.lib_swipetoactionlayout.ActionBindHelper
 import github.com.st235.lib_swipetoactionlayout.SwipeAction
 import github.com.st235.lib_swipetoactionlayout.SwipeMenuListener
+import github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
 import github.com.st235.swipetoactionlayout.identicon.IdenticonDrawable
-import kotlinx.android.synthetic.main.item_contact.view.*
-import kotlinx.android.synthetic.main.item_swipetoaction.view.*
 
 typealias OnActionClicked = (contact: ContactInfo, action: SwipeAction) -> Unit
 
@@ -44,12 +45,13 @@ class ContactsAdapter(
     }
 
     inner class ContactsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), SwipeMenuListener {
-        val icon = itemView.icon
-        val isOnline = itemView.isOnline
-        val title = itemView.title
-        val description = itemView.description
 
-        val swipeToActionLayout = itemView.swipeToAction
+        private val icon: CircularImageView = itemView.findViewById(R.id.icon)
+        private val isOnline: AppCompatImageView = itemView.findViewById(R.id.is_online)
+        private val title: AppCompatTextView = itemView.findViewById(R.id.title)
+        private val description: AppCompatTextView = itemView.findViewById(R.id.description)
+
+        val swipeToActionLayout: SwipeToActionLayout = itemView.findViewById(R.id.swipe_to_action_layout)
 
         fun bind(contact: ContactInfo) {
             swipeToActionLayout.menuListener = this
@@ -84,7 +86,8 @@ class ContactsAdapter(
         }
 
         override fun onOpened(view: View) {
-            val contact = contacts[adapterPosition]
+            val position = bindingAdapterPosition
+            val contact = contacts[position]
             actionsBindHelper.closeOtherThan(contact.name)
         }
 
@@ -93,7 +96,8 @@ class ContactsAdapter(
         }
 
         override fun onActionClicked(view: View, action: SwipeAction) {
-            onActionClicked(contacts[adapterPosition], action)
+            val position = bindingAdapterPosition
+            onActionClicked(contacts[position], action)
             swipeToActionLayout.close()
         }
     }

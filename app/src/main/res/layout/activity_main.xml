@@ -9,13 +9,13 @@
     android:background="#fff">
 
     <Button
-        android:id="@+id/widgetShowcase"
+        android:id="@+id/widget_showcase"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Widget showcase" />
 
     <Button
-        android:id="@+id/usageExample"
+        android:id="@+id/usage_example"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Usage example" />
