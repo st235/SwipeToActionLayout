@@ -8,7 +8,7 @@
     tools:context=".ShowcaseActivity">
 
     <github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
-        android:id="@+id/swipeToActionLayout"
+        android:id="@+id/swipe_to_action_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp">
@@ -26,20 +26,20 @@
     </github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout>
 
     <CheckBox
-        android:id="@+id/vibrateCheckBox"
+        android:id="@+id/vibrate_check_box"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:text="Vibrate on quick action" />
 
     <CheckBox
-        android:id="@+id/quickActionCheckBox"
+        android:id="@+id/quick_action_check_box"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:text="Allow quick action" />
 
-    <st235.com.github.flow_layout.FlowLayout
+    <st235.com.github.flowlayout.FlowLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -67,9 +67,9 @@
             android:layout_height="wrap_content"
             android:text="Gravity end" />
 
-    </st235.com.github.flow_layout.FlowLayout>
+    </st235.com.github.flowlayout.FlowLayout>
 
-    <st235.com.github.flow_layout.FlowLayout
+    <st235.com.github.flowlayout.FlowLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -86,11 +86,11 @@
             android:text="Close" />
 
         <Button
-            android:id="@+id/openFully"
+            android:id="@+id/open_fully"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Open fully" />
 
-    </st235.com.github.flow_layout.FlowLayout>
+    </st235.com.github.flowlayout.FlowLayout>
 
 </LinearLayout>

@@ -1,5 +1,7 @@
 package github.com.st235.swipetoactionlayout
 
+import java.util.*
+
 data class ContactInfo(
     val name: String,
     val position: String,
@@ -10,7 +12,11 @@ data class ContactInfo(
     val email: String
     get() {
         val raw = name.split(" ")
-        return String.format("%s.%s@hooli.xyz", raw[0].toLowerCase(), raw[1].toLowerCase())
+        return String.format(
+            "%s.%s@hooli.xyz",
+            raw[0].lowercase(Locale.getDefault()),
+            raw[1].lowercase(Locale.getDefault())
+        )
     }
 
 }
