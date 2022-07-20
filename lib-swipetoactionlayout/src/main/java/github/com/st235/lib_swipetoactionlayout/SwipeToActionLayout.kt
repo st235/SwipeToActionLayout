@@ -90,7 +90,9 @@ class SwipeToActionLayout @JvmOverloads constructor(
     private val actionFactory = ActionFactory(context)
     private val behaviourDelegateFactory = BehaviourDelegatesFactory(context)
 
-    private var inProgressStateProcessor = QuickActionsMenuStateProcessor()
+    private var inProgressStateProcessor = QuickActionsMenuStateProcessor(
+        initState = QuickActionsStates.CLOSED
+    )
 
     private var actionSize: Size = Size(0, 0)
 
@@ -115,7 +117,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
         typedArray.recycle()
 
-        inProgressStateProcessor.onReleaseStateChanged = { state ->
+        inProgressStateProcessor.onReleaseStateChangedListener = { state ->
             when (state) {
                 QuickActionsStates.FULL_OPENED -> {
                     menuListener?.onFullyOpened(this, actions.last())
@@ -127,7 +129,7 @@ class SwipeToActionLayout @JvmOverloads constructor(
 
         }
 
-        inProgressStateProcessor.onProgressiveStateChanged = { state ->
+        inProgressStateProcessor.onProgressStateChangedListener = { state ->
             when (state) {
                 QuickActionsStates.FULL_OPENED -> {
                     if (shouldVibrateOnQuickAction) {
