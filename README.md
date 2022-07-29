@@ -3,7 +3,7 @@
 # SwipeToActionLayout
 
 ![Min Android Sdk](https://img.shields.io/badge/minSdkVersion-16-1976D2.svg)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.st235/swipetoactionlayout/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.st235/swipetoactionlayout)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.st235/swipetoactionlayout.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.github.st235%22%20AND%20a:%22swipetoactionlayout%22)
 
 SwipeToActionLayout is a layout which helps to implement swipe to reveal behaviour. It is really easy to setup and maintain.
 
