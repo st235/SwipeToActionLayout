@@ -3,10 +3,14 @@ package github.com.st235.lib_swipetoactionlayout
 import android.content.Context
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import github.com.st235.lib_swipetoactionlayout.utils.show
 
 internal class ActionFactory(
@@ -47,6 +51,16 @@ internal class ActionFactory(
         iconView.setColorFilter(item.iconTint, PorterDuff.Mode.SRC_ATOP)
 
         titleView.text = item.text
+
+        if (item.textSize == null) {
+            titleView.setTextSize(
+                TypedValue.COMPLEX_UNIT_PX,
+                context.resources.getDimension(R.dimen.menu_item_default_text_size)
+            )
+        } else {
+            titleView.setTextSize(TypedValue.COMPLEX_UNIT_PX, item.textSize)
+        }
+
         titleView.setTextColor(item.textColor)
         titleView.gravity = Gravity.CENTER
         titleView.show(isShown = item.text != null)

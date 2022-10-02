@@ -17,6 +17,7 @@
         <attr name="android:id" />
         <attr name="android:title" />
         <attr name="android:icon" />
+        <attr name="android:textSize" />
         <attr name="android:titleTextColor" format="color" />
         <attr name="android:background" format="reference" />
         <attr name="android:iconTint" format="color" />
