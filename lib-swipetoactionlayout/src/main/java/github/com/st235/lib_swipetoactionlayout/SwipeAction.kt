@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import androidx.annotation.*
+import androidx.annotation.IntRange
 import androidx.core.content.ContextCompat
 
 data class SwipeAction internal constructor(
@@ -12,6 +13,7 @@ data class SwipeAction internal constructor(
     val background: Drawable?,
     @DrawableRes val iconId: Int,
     val text: CharSequence?,
+    @Px val textSize: Float? = null,
     @ColorInt val iconTint: Int = Color.WHITE,
     @ColorInt val textColor: Int = Color.WHITE
 ) {
@@ -26,7 +28,7 @@ data class SwipeAction internal constructor(
             @ColorInt textColor: Int = Color.WHITE,
             @ColorInt backgroundColor: Int
         ): SwipeAction {
-            return SwipeAction(actionId, ColorDrawable(backgroundColor), iconId, text, iconTint, textColor)
+            return SwipeAction(actionId, ColorDrawable(backgroundColor), iconId, text, null, iconTint, textColor)
         }
 
         fun withBackgroundColorRes(
@@ -39,7 +41,7 @@ data class SwipeAction internal constructor(
             @ColorRes backgroundColorRes: Int
         ): SwipeAction {
             val color = ContextCompat.getColor(context, backgroundColorRes)
-            return SwipeAction(actionId, ColorDrawable(color), iconId, text, iconTint, textColor)
+            return SwipeAction(actionId, ColorDrawable(color), iconId, text, null, iconTint, textColor)
         }
 
         fun withBackgroundDrawable(
@@ -50,7 +52,7 @@ data class SwipeAction internal constructor(
             @ColorInt textColor: Int = Color.WHITE,
             background: Drawable?
         ): SwipeAction {
-            return SwipeAction(actionId, background, iconId, text, iconTint, textColor)
+            return SwipeAction(actionId, background, iconId, text, null, iconTint, textColor)
         }
 
     }

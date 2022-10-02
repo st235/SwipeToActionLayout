@@ -12,6 +12,7 @@ internal class XmlMenuParser(private val context: Context) {
     companion object {
         private const val NO_ID = 0
         private const val NO_TEXT = ""
+        private const val NO_VALUE = -1
         private const val NO_COLOR = Color.TRANSPARENT
 
         private const val MENU_TAG = "menu"
@@ -81,6 +82,10 @@ internal class XmlMenuParser(private val context: Context) {
         val iconTint = typedArray.getColor(R.styleable.SwipeActionItem_android_iconTint, NO_COLOR)
 
         val text = typedArray.getString(R.styleable.SwipeActionItem_android_title)
+
+        val rawTextSize = typedArray.getDimensionPixelSize(R.styleable.SwipeActionItem_android_textSize, NO_VALUE)
+        val textSize: Float? = if (rawTextSize  != NO_VALUE) rawTextSize.toFloat() else null
+
         val textColor = typedArray.getColor(R.styleable.SwipeActionItem_android_titleTextColor, NO_COLOR)
 
         val background = typedArray.getDrawable(R.styleable.SwipeActionItem_android_background)
@@ -92,6 +97,7 @@ internal class XmlMenuParser(private val context: Context) {
         }
 
         parser.require(XmlPullParser.START_TAG, namespace, MENU_ITEM_TAG)
-        return SwipeAction(id, background, iconId, text, iconTint, textColor)
+
+        return SwipeAction(id, background, iconId, text, textSize, iconTint, textColor)
     }
 }
