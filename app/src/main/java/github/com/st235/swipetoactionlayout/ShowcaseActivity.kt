@@ -37,26 +37,29 @@ class ShowcaseActivity : AppCompatActivity() {
 
         swipeToActionLayout.actions =
             listOf(
-                SwipeAction.withBackgroundColor(
+                SwipeAction.Builder(
                     actionId = R.id.action_call,
-                    iconId = R.drawable.ic_call_black_18dp,
-                    text = "Call",
-                    backgroundColor = 0xFF455A64.toInt()
-                ),
-                SwipeAction.withBackgroundColor(
-                    actionId = R.id.action_email,
-                    iconId = R.drawable.ic_email_black_18dp,
-                    text = "Email",
-                    backgroundColor = 0xFF37474F.toInt()
-                ),
-                SwipeAction.withBackgroundColor(
-                    actionId = R.id.action_delete,
-                    iconId = R.drawable.ic_delete_black_18dp,
-                    text = "Remove",
-                    iconTint = 0xFFEEEEEE.toInt(),
-                    textColor = 0xFFEEEEEE.toInt(),
-                    backgroundColor = 0xFF263238.toInt()
+                    iconId = R.drawable.ic_call_black_18dp
                 )
+                    .text("Call")
+                    .backgroundColor(0xFF455A64.toInt())
+                    .build(),
+                SwipeAction.Builder(
+                    actionId = R.id.action_email,
+                    iconId = R.drawable.ic_email_black_18dp
+                )
+                    .text("Email")
+                    .backgroundColor(0xFF37474F.toInt())
+                    .build(),
+                SwipeAction.Builder(
+                    actionId = R.id.action_delete,
+                    iconId = R.drawable.ic_delete_black_18dp
+                )
+                    .text("Remove")
+                    .backgroundColor(0xFF263238.toInt())
+                    .iconTint(0xFFEEEEEE.toInt())
+                    .textColor(0xFFEEEEEE.toInt())
+                    .build()
             )
 
         vibrateCheckBox.setOnCheckedChangeListener { _, isChecked ->
