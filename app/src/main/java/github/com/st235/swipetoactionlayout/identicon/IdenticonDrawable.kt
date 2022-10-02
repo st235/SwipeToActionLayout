@@ -28,9 +28,9 @@ class IdenticonDrawable(
         hash = generateHash(text)
     }
 
-    override fun onBoundsChange(bounds: Rect?) {
-        val width = bounds?.width() ?: 0
-        val height = bounds?.height() ?: 0
+    override fun onBoundsChange(bounds: Rect) {
+        val width = bounds.width()
+        val height = bounds.height()
 
         val boundSize = min(width, height)
 
