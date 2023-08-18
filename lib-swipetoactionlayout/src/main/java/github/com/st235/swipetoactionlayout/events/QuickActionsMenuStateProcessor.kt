@@ -1,6 +1,6 @@
-package github.com.st235.lib_swipetoactionlayout.events
+package github.com.st235.swipetoactionlayout.events
 
-import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
+import github.com.st235.swipetoactionlayout.QuickActionsStates
 
 internal class QuickActionsMenuStateProcessor(
     initState: QuickActionsStates? = null

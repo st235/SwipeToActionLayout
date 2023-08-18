@@ -4,8 +4,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
-import github.com.st235.lib_swipetoactionlayout.SwipeAction
-import github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
 
 class ShowcaseActivity : AppCompatActivity() {
 

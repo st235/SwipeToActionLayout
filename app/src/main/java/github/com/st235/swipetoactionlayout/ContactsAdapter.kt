@@ -7,10 +7,6 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.RecyclerView
-import github.com.st235.lib_swipetoactionlayout.ActionBindHelper
-import github.com.st235.lib_swipetoactionlayout.SwipeAction
-import github.com.st235.lib_swipetoactionlayout.SwipeMenuListener
-import github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
 import github.com.st235.swipetoactionlayout.identicon.IdenticonDrawable
 
 typealias OnActionClicked = (contact: ContactInfo, action: SwipeAction) -> Unit

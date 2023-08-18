@@ -1,4 +1,4 @@
-package github.com.st235.lib_swipetoactionlayout
+package github.com.st235.swipetoactionlayout
 
 import java.util.*
 

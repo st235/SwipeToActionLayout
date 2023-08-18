@@ -1,13 +1,13 @@
-package github.com.st235.lib_swipetoactionlayout.behaviour
+package github.com.st235.swipetoactionlayout.behaviour
 
 import android.content.Context
 import android.view.View
-import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
-import github.com.st235.lib_swipetoactionlayout.utils.Size
-import github.com.st235.lib_swipetoactionlayout.utils.VelocityHelper
-import github.com.st235.lib_swipetoactionlayout.utils.clamp
+import github.com.st235.swipetoactionlayout.QuickActionsStates
+import github.com.st235.swipetoactionlayout.utils.Size
+import github.com.st235.swipetoactionlayout.utils.VelocityHelper
+import github.com.st235.swipetoactionlayout.utils.clamp
 
-internal open class RightDirectedBehaviourDelegate(
+internal open class LeftDirectedBehaviourDelegate(
     private val actionCount: Int,
     private val context: Context
 ): BehaviourDelegate {
@@ -17,11 +17,11 @@ internal open class RightDirectedBehaviourDelegate(
     override fun layoutAction(view: View, l: Int, r: Int, actionSize: Size) {
         //reset view translation on relayout
         view.translationX = 0F
-        view.layout(r, 0, r + actionSize.width, actionSize.height)
+        view.layout(l - actionSize.width, 0, 0, actionSize.height)
     }
 
     override fun clampViewPosition(parentView: View, view: View, left: Int, actionSize: Size): Int {
-        return clamp(left, -actionSize.width * actionCount, 0)
+        return clamp(left, 0, actionSize.width * actionCount)
     }
 
     override fun translateAction(mainView: View, actionView: View, actionSize: Size, dx: Int, index: Int) {
@@ -30,9 +30,9 @@ internal open class RightDirectedBehaviourDelegate(
 
     override fun isOpened(position: Int, actionSize: Size): Boolean {
         // position is the left side of a view
-        // as we can move view only to left position belongs to [-translateDistance, 0]
+        // as we can move view only to left position belongs to [0, translateDistance]
         val translateDistance = actionSize.width * actionCount
-        return position < (-translateDistance / 2)
+        return position > (translateDistance / 2)
     }
 
     override fun getFinalLeftPosition(view: View, velocity: Float, actionSize: Size): Int {
@@ -40,9 +40,9 @@ internal open class RightDirectedBehaviourDelegate(
         val isFastFling = velocityHelper.shouldBeConsideredAsFast(velocity)
 
         return when {
-            isFastFling && velocityHelper.isLeft(velocity) -> -translateDistance
-            isFastFling && velocityHelper.isRight(velocity) -> 0
-            isOpened(view.left, actionSize) -> -translateDistance
+            isFastFling && velocityHelper.isRight(velocity) -> translateDistance
+            isFastFling && velocityHelper.isLeft(velocity) -> 0
+            isOpened(view.left, actionSize) -> translateDistance
             else -> 0
         }
     }
@@ -61,9 +61,8 @@ internal open class RightDirectedBehaviourDelegate(
     override fun getPositionForState(view: View, actionSize: Size, states: QuickActionsStates): Int {
         return when(states) {
             QuickActionsStates.FULL_OPENED -> throw IllegalArgumentException("Unsupported state")
-            QuickActionsStates.OPENED -> -(actionSize.width * actionCount)
+            QuickActionsStates.OPENED -> actionSize.width * actionCount
             QuickActionsStates.CLOSED -> 0
         }
     }
-
 }

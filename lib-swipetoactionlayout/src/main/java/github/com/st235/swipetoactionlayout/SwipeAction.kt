@@ -1,10 +1,13 @@
-package github.com.st235.lib_swipetoactionlayout
+package github.com.st235.swipetoactionlayout
 
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
-import androidx.annotation.*
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
+import androidx.annotation.IdRes
 import androidx.core.content.ContextCompat
 
 data class SwipeAction internal constructor(

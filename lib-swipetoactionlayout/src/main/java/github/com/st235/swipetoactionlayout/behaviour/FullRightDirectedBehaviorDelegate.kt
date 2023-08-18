@@ -1,13 +1,12 @@
-package github.com.st235.lib_swipetoactionlayout.behaviour
+package github.com.st235.swipetoactionlayout.behaviour
 
 import android.animation.ValueAnimator
 import android.content.Context
 import android.view.View
-import androidx.core.animation.addListener
-import github.com.st235.lib_swipetoactionlayout.ActionFactory
-import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
-import github.com.st235.lib_swipetoactionlayout.utils.Size
-import github.com.st235.lib_swipetoactionlayout.utils.clamp
+import github.com.st235.swipetoactionlayout.ActionFactory
+import github.com.st235.swipetoactionlayout.QuickActionsStates
+import github.com.st235.swipetoactionlayout.utils.Size
+import github.com.st235.swipetoactionlayout.utils.clamp
 
 internal class FullRightDirectedBehaviorDelegate(
     private val actionCount: Int,

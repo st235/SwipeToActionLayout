@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".ShowcaseActivity">
 
-    <github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
+    <github.com.st235.swipetoactionlayout.SwipeToActionLayout
         android:id="@+id/swipe_to_action_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,7 +23,7 @@
             android:gravity="center"
             android:textSize="32sp" />
 
-    </github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout>
+    </github.com.st235.swipetoactionlayout.SwipeToActionLayout>
 
     <CheckBox
         android:id="@+id/vibrate_check_box"

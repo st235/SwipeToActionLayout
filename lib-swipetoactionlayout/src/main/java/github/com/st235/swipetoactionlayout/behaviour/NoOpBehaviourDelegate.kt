@@ -1,8 +1,8 @@
-package github.com.st235.lib_swipetoactionlayout.behaviour
+package github.com.st235.swipetoactionlayout.behaviour
 
 import android.view.View
-import github.com.st235.lib_swipetoactionlayout.QuickActionsStates
-import github.com.st235.lib_swipetoactionlayout.utils.Size
+import github.com.st235.swipetoactionlayout.QuickActionsStates
+import github.com.st235.swipetoactionlayout.utils.Size
 
 internal class NoOpBehaviourDelegate: BehaviourDelegate {
 
