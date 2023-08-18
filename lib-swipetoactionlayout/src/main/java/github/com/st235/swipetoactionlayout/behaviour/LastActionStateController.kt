@@ -1,10 +1,10 @@
-package github.com.st235.lib_swipetoactionlayout.behaviour
+package github.com.st235.swipetoactionlayout.behaviour
 
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.view.View
 import androidx.core.animation.addListener
-import github.com.st235.lib_swipetoactionlayout.utils.Size
+import github.com.st235.swipetoactionlayout.utils.Size
 
 internal class LastActionStateController(
     private val delegate: Delegate

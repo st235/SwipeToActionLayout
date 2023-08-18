@@ -1,8 +1,8 @@
-package github.com.st235.lib_swipetoactionlayout.behaviour
+package github.com.st235.swipetoactionlayout.behaviour
 
 import android.content.Context
-import github.com.st235.lib_swipetoactionlayout.SwipeToActionLayout
-import github.com.st235.lib_swipetoactionlayout.utils.isLtr
+import github.com.st235.swipetoactionlayout.SwipeToActionLayout
+import github.com.st235.swipetoactionlayout.utils.isLtr
 
 internal class BehaviourDelegatesFactory(
     private val context: Context

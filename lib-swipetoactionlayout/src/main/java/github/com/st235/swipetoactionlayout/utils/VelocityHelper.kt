@@ -1,4 +1,4 @@
-package github.com.st235.lib_swipetoactionlayout.utils
+package github.com.st235.swipetoactionlayout.utils
 
 import android.content.Context
 import android.view.ViewConfiguration

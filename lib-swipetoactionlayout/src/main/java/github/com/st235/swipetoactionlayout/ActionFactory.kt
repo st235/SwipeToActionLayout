@@ -1,4 +1,4 @@
-package github.com.st235.lib_swipetoactionlayout
+package github.com.st235.swipetoactionlayout
 
 import android.content.Context
 import android.graphics.PorterDuff
@@ -7,7 +7,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import github.com.st235.lib_swipetoactionlayout.utils.show
+import github.com.st235.swipetoactionlayout.utils.show
 
 internal class ActionFactory(
     private val context: Context

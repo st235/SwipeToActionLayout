@@ -1,20 +1,24 @@
-package github.com.st235.lib_swipetoactionlayout
+package github.com.st235.swipetoactionlayout
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.*
+import android.view.Gravity
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
 import androidx.annotation.MenuRes
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper
-import github.com.st235.lib_swipetoactionlayout.behaviour.BehaviourDelegate
-import github.com.st235.lib_swipetoactionlayout.behaviour.BehaviourDelegatesFactory
-import github.com.st235.lib_swipetoactionlayout.behaviour.NoOpBehaviourDelegate
-import github.com.st235.lib_swipetoactionlayout.events.QuickActionsMenuStateProcessor
-import github.com.st235.lib_swipetoactionlayout.parsers.XmlMenuParser
-import github.com.st235.lib_swipetoactionlayout.utils.Size
-import github.com.st235.lib_swipetoactionlayout.utils.isLtr
-import github.com.st235.lib_swipetoactionlayout.utils.max
-import github.com.st235.lib_swipetoactionlayout.utils.min
+import github.com.st235.swipetoactionlayout.behaviour.BehaviourDelegate
+import github.com.st235.swipetoactionlayout.behaviour.BehaviourDelegatesFactory
+import github.com.st235.swipetoactionlayout.behaviour.NoOpBehaviourDelegate
+import github.com.st235.swipetoactionlayout.events.QuickActionsMenuStateProcessor
+import github.com.st235.swipetoactionlayout.parsers.XmlMenuParser
+import github.com.st235.swipetoactionlayout.utils.Size
+import github.com.st235.swipetoactionlayout.utils.isLtr
+import github.com.st235.swipetoactionlayout.utils.max
+import github.com.st235.swipetoactionlayout.utils.min
 
 internal typealias SwipeToActionLayoutLayoutParams = ViewGroup.MarginLayoutParams
 

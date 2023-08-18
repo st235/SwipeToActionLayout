@@ -3,12 +3,12 @@ apply plugin: 'kotlin-android'
 apply from: './maven.gradle'
 
 android {
-    compileSdkVersion 33
-
+    namespace 'github.com.st235.swipetoactionlayout'
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 33
+        compileSdk 34
+        targetSdkVersion 34
     }
 
     buildTypes {
@@ -18,17 +18,14 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = '1.8'
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.10'
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 }
